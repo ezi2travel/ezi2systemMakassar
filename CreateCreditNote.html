@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Credit Note</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+    <style>
+        body { background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; text-align:left;}
+        label{
+            display:inline-block;
+            width: 30%;
+            font-size: 25px;
+            font-weight: bold;
+            margin-left: 5%;
+        }
+        p{
+            display:inline-block;
+            font-size: 25px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        input,textarea{
+            font-size: 25px;
+            width: 30%;
+        }
+        h1{
+            color:rgb(0, 60, 255); 
+            text-align: center; 
+            font-size: 45px; 
+            font-weight: bold; 
+            font-style: italic;
+        }
+        
+        
+    </style>
+    <body>
+        <h1>MAKE A CREDIT NOTE</h1>
+        <div>
+            <div >
+                <label>NAME : </label>
+                <input id="test1" placeholder="Enter name" onkeyup="this.value = this.value.toUpperCase();">
+            </div><br/>
+            <div>
+                <label>CREDIT NOTE NO : </label>
+                <input disabled id="test2">
+            </div><br/>
+            <div>
+                <label>RECEIPT CREDIT NOTE : </label>
+                <input disabled id="test3">
+            </div><br/>
+            <div>
+                <label>DATE : </label>
+                <input disabled id="test4">
+            </div><br/>
+            <div>
+                <label>AMOUNT : </label>
+                <input id="test5" placeholder="Enter amount" >
+            </div><br/>
+            <div>
+                <label>REFERENCES : </label>
+                <textarea id="test6"></textarea>
+            </div>
+            <div>
+                <label>BY :</label>            
+                <input type="text" disabled id="userid1"/><br/><br/>
+            </div><br/><br/>
+        </div>
+
+        <div style="text-align: center;">
+            <div >
+                <button title="Create Credit Note" style="background-color: green ; color: white; padding: 10px 25px; border-radius: 10px" id="add_CN">Add Credit Note <i class="fa fa-plus"></i> </button>
+                <button title="Return to Main Credit Note Page" onclick="pay()" style="background-color: rgb(0, 166, 255) ; color: black; padding: 10px 25px; border-radius: 10px" ><i class="fa fa-arrow-left"> BACK</i></button></br></br>            
+            </div> 
+            <br /><br/>
+        </div>
+
+        <div style="border: 1px solid white; width: 50%; margin-left: 5%;" >
+            <ul id="myUL" style="font-size: 25px;"></ul>
+        </div>
+
+        
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>
+        <script>
+            function pay(){
+                window.history.go(-1);
+            }
+        </script>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+            import {getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+            import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+            const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+          
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const analytics = getAnalytics(app);
+            
+            window.addEventListener('load',checkuser);
+
+            function checkuser(){
+                const auth = getAuth();
+                onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        userid1.value = snapshot.val().userid;
+                    }
+                    })
+                } 
+                else {
+                    alert("Please Sign In! ");
+                    window.location.href= 'index.html';
+                }
+                });
+            }
+
+            const queryString = window.location.search;
+            var x = queryString.substring(7);
+            let y = x.split("%20").join(" ").toUpperCase();
+            test1.value = y;
+
+            const dbref = ref(db);
+
+            // let test5 = document.getElementById("test5");
+            // function autoNumber(){
+            //     let x = test5.value;
+            //     test5.value= Number(x).toFixed(2)  
+            // }
+            // test5.addEventListener('change',autoNumber);
+
+            function retData(){
+                if(test1.value == "" || test1.value == null || y == "" || y == null){
+                    test4.value = new Date().toLocaleDateString('en-GB');
+                    test5.value = "";
+                    test6.value = "";
+                    test2.value = "1";
+                    
+                    get(child(dbref, 'number')).then((snapshot)=>{
+                        let a = (Number(snapshot.val().creditNote_no)+1);
+                        let b = a.toString().padStart(9, '0');
+                        test3.value = "#CN" + b;
+                        document.getElementById("receipt_no").innerHTML = "RECEIPT NO : #CN" + b;
+                        document.getElementById("date_Pay").innerHTML ="DATE : " + new Date().toLocaleDateString('en-GB');
+                    })
+                }
+                else{
+                    test2.value ="1";
+                    test4.value = new Date().toLocaleDateString('en-GB');
+                    test5.value = "";
+                    test6.value = "";
+
+                    get(child(dbref, 'CreditNote/'+y)).then((snapshot)=>{
+                        test1.value = y;
+                        test2.value = (Number(snapshot.val().creditnote_no)+1);
+                        
+                        document.getElementById("date_Pay").innerHTML ="DATE : " + new Date().toLocaleDateString('en-GB'); 
+                    })
+                    
+                    get(child(dbref, 'number')).then((snapshot)=>{
+                        let a = (Number(snapshot.val().creditNote_no)+1);
+                        let b = a.toString().padStart(9, '0');
+                        test3.value = "#CN" + b;
+                        document.getElementById("receipt_no").innerHTML = "RECEIPT NO : #CN" + b;
+                    })
+                }
+                
+            }
+
+            window.addEventListener('load',GetCN);
+
+            let t_amount = 0;
+
+            function GetCN(){
+                const dbref = ref(db);
+                get(child(dbref,'CreditNote/'+ y +'/CreditNote')).then((snapshot)=>{
+                snapshot.forEach(std => {
+                    CNList(std);
+                    
+                });
+                });
+            }
+
+            function CNList(std){
+                let key = std.key;
+                let value = std.val();
+                let date = document.createElement('li');
+
+                var money = (value.amount).toString();
+                var index = money.indexOf("."); 
+                    if(index >=0){
+                        var id = money.slice(0, index); 
+                        var text = money.slice(index + 1);  // Gets the text part
+                        id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        id = id.replaceAll(",",".");
+                        money = id +","+ text;  
+                    }
+                    else{
+                        money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        money = money.replaceAll(",",".");
+                        money = money+",00";
+                    }
+
+                if (key == 0){
+                date.innerHTML = "<p>LIST OF Credit Note</p>";
+                }
+                else{
+                date.innerHTML = '<a style = "color:blue" href="CN.html?index='+y+'@'+key+'" style="text-align:left">Credit Note : '+ key + '<br> Amount : Rp. ' + money + '</br>' ;
+                }
+                myUL.append(date);
+                calculate(value.amount); 
+            }
+
+            function calculate(x){
+                const dbref = ref(db);
+                t_amount= Number(t_amount)  + Number(x);
+                //alert(x);
+                update(ref(db,'CreditNote/' + y), {
+                total_creditnote : t_amount,
+                })
+            }
+    
+            function ADD_CN(){
+                const dbref = ref(db);
+
+                if(test1.value =="" || test1.value==null ||test5.value =="" || test5.value==null ||test6.value =="" || test6.value==null){
+                    alert("Please fill all the details!");
+                    return;
+                }
+                else{
+                    get(child(dbref, 'CreditNote/' + y )).then((snapshot)=>{
+                        let a = (Number(snapshot.val().creditnote_no)+1);
+                        set(ref(db,'CreditNote/' + y + "/CreditNote/" + a), {
+                            amount : test5.value,
+                            reference : test6.value,
+                            date : test4.value,
+                            cn_no : test3.value,
+                            user : userid1.value
+                        }).then(()=>{
+                            alert("Credit Note Added !");
+                            update(ref(db,'CreditNote/' + y), {
+                            creditnote_no : a,
+                            })
+                            window.location.href= 'CreateCreditNote.html?index=' + y;
+                        }).catch((error)=>{
+                            alert("unsucessful");
+                            console.log(error);
+                        })
+                    })
+                    get(child(dbref, 'number')).then((snapshot)=>{
+                    let a = (Number(snapshot.val().creditNote_no)+1);
+                    update(ref(db,'CreditNote/' + y ), {
+                        creditnote_no : a,                
+                    })
+                    update(ref(db,'number'), {
+                        creditNote_no : a,                
+                    })
+                })
+                }
+            }
+
+            add_CN.addEventListener('click', ADD_CN);   
+            window.addEventListener('load',retData);
+
+        </script>
+    </body>
+</html>

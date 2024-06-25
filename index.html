@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ezi2Travel</title>
+    <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+    
+    <style>
+        body {text-align: center; background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed;}
+        #enterDetails {float: left; width: 100%;  background-color: darkslategray; color: floralwhite;}
+        #findDetails {float: left; width: 100%; background-color: floralwhite; color: darkslategray;}
+        input {width: 120px;}
+    </style>
+</head>
+<body>
+    <div id="login-box" >
+        <div >
+            <div> 
+                <img src="./bendera.png" style="width:200px;height:200px;">
+                <img src="./Logo_Ezi2travel_2.png" style="width:200px;height:200px;">
+            </div>
+            
+            <h1 style="color:rgb(255, 41, 41); font-size:  50px; font-family: Arial, Helvetica, sans-serif; font-style: italic; font-weight: bold;">Welcome to Ezi2travel Makassar</h1>
+            <h2 style="color:rgb(255, 41, 41); font-size:  35px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">Log in</h2>
+            <input type="text" id="email" name="email" placeholder="   E-mail" style="width:50%;font-size: 20px; height: 25px;"/><br><br>
+            <input type="password" id="password" name="password" placeholder="  Password" style="width:50% ;font-size: 20px;height: 25px;"/><br><br>
+            <input type="submit" id="login" name="login" value="Login" style="color:white; background-color: rgb(255, 41, 41); padding: 10px 30px;font-size: 20px; font-weight: bold; font-style: italic; border-radius: 10px;"/>
+        </div>
+    </div>
+</body>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getDatabase,get, set, ref, update, onValue, child } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js"
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+    import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+      authDomain: "databaseezimakassar.firebaseapp.com",
+      databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+      projectId: "databaseezimakassar",
+      storageBucket: "databaseezimakassar.appspot.com",
+      messagingSenderId: "52198587801",
+      appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+      measurementId: "G-S280NXJS9F"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const database = getDatabase(app);
+    const auth = getAuth();
+    const dbref = ref(database);
+
+    login.addEventListener('click',(e) => {
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+
+        signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+        const user = userCredential.user;
+        //alert(user.uid);
+        //update(ref(database,'user/' + user.uid), {
+        //  Login:"Yes"
+        // })
+
+        get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+            if(snapshot.exists()){
+                if(snapshot.val().userid == "ezi2m1"){
+                    window.alert("Success! Welcome back!");
+                    window.location.replace("./homepageAdmin.html"); 
+                }
+                else{
+                    window.alert("Success! Welcome back!");
+                    window.location.replace("./homepage.html");
+                }
+            }
+            else{
+                alert("user not registered");
+                window.location.replace("./index.html");
+            }
+        })
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            window.alert("Error occurred. Try again.");
+        });               
+    });
+
+</script>
+ </html>

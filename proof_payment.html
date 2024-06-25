@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Payment Details</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <style>
+            body { background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; text-align:left;}
+            input{
+                padding : 15px 300px;
+                font-size: 25px;
+                text-align: center;
+            }
+            label{
+                font-size: 25px;
+                color: blue;
+                font-weight: bold;
+            }
+            h1{
+            color:rgb(0, 60, 255); 
+            text-align: center; 
+            font-size: 40px; 
+            font-weight: bold; 
+            font-style: italic;
+            background-color: black;
+            }
+            h2{
+                color:black;
+                text-align: center; 
+                font-size: 40px; 
+                font-weight: bold; 
+                font-style: italic;
+            }
+            td {border: 1px solid black; font-size: 25px;text-align: left; }
+            th {border: 1px solid black; font-size: 25px;text-align: center;}
+            table {border: 1px solid black; }
+
+          
+        </style>
+
+    </head>
+    <body style="margin-top: 3%;">
+        <h1>PAYMENT DETAILS</h1>
+        <div style="display: grid; justify-content: center;">
+            <label>NAME : </label>
+            <input disabled id="index"/><br/>
+            <label>BY :</label>            
+            <input type="text" disabled id="userid1"/><br/>
+            <label>PAYMENT NUMBER : </label>
+            <input disabled id="index2"/><br/>
+            <label>RECEIPT NUMBER : </label>
+            <input disabled id="no_receipt"/><br/>
+            <label>AMOUNT : </label>
+            <input id="index3"/><br/>
+            <label>BALANCE : </label>
+            <input disabled id="index4"/><br/>
+            <label>DATE OF PAYMENT : </label>
+            <input disabled id="index5"/><br/> 
+        </div><br/>
+        <div style="text-align: center;">
+            <button title="Update Payment" id="updateBTN" style="padding: 15px 25px; border-radius: 10px; background-color: forestgreen; color: white; font-weight: bold; font-size: 20px;"><i class="fa fa-plus"></i> UPDATE</button>
+            <button title="Delete payment" id="removeBTN" style="padding: 15px 25px; border-radius: 10px; background-color: red; color: white; font-weight: bold; font-size: 20px;"><i class="fa fa-trash-o"></i> REMOVE</button>
+            <button title="Print Resit This Payment" onclick="createPDF()" id="printBTN" style="padding: 15px 25px; border-radius: 10px; background-color: darkmagenta; color: white; font-weight: bold; font-size: 20px;"><i class="fa fa-print"></i> PRINT</button>
+            <button title="Return to Invoice Page" id="back" style="padding: 15px 25px; border-radius: 10px; background-color: red; color: white; font-weight: bold; font-size: 20px;"><i class="fa fa-arrow-left"></i> BACK</button>
+            <button title="Make a New Payment" onclick="makepayment()" id="paybtn" style="padding: 15px 25px; border-radius: 10px; background-color: rgb(21, 121, 209); color: white; font-weight: bold; font-size: 20px;"> NEW PAYMENT</button>
+        </div>
+
+
+        <div id="table1" style="display: none;">
+            <div id="company_info" style="margin: 5px; display: flex; ">
+                <img src="./logo.jpg" style="border:4px solid rgb(255, 198, 43); width:100px; height:100px; margin-top: 30px;transform: rotate(45deg);margin-left: 1%;">
+                <div id="company_address" style="margin-left: 30px; margin-top: 20px;" >
+                    <p style="line-height: 0.5; font-weight: bold;">PT. EZI2 TRAVEL MKS (759360-P)</p>
+                    <p style="line-height: 0.5; ">JL. AP PETTARANI,</p>
+                    <p style="line-height: 0.5;">KOMPLEKS NEW RUKO ZAMRUD,</p>
+                    <p style="line-height: 0.5;">BLOK F NO. 10,</p>
+                    <p style="line-height: 0.5;">MAKASSAR, SELAWESI SELATAN</p>
+                    <p style="line-height: 0.5;">PHONE : +62 823-2428-6457 / </p>
+                    <p style="line-height: 0.5;">+62 853-9916-8057 </p>
+                    <p style="line-height: 0.5;">Email : ezi2travel.makassar@gmail.com </p>
+                </div>
+                <div id="invoice_title" style="margin-left: 100px;" >
+                    <div>
+                        <h1>RECEIPT</h1>
+                        <p id="receipt_no"></p>
+                    </div>
+                    <div>
+                        <p id="date_Pay"></p>
+                    </div>
+                    <div>
+                        <p id="reference"></p>
+                    </div>
+                    <div>
+                        <p id="userid2"></p>
+                    </div>
+                    <div style="width:100px; height: 120px ; border: 1px solid black;">
+                        <p style="text-align: center;">PAYMENT STATUS</p>
+                        <p style="font-weight: bold; text-align: center; color: rgb(47, 193, 47);" id="status_payment">APPROVE</p>
+                    </div>
+                </div>
+            </div>
+            <br/><br/><hr>
+            <div id="customer" >
+                <h3 >CUSTOMER : </h3>
+                <p id="nama" ></p>
+                <p id="address"></p>
+                <p id="no_telefon" ></p>
+            </div>
+            <hr><br/>
+            
+            <table id="dataTable" style="width: 100%; height: 30px; margin-left:auto;margin-right:auto; text-align:center">
+                <tr>
+                    <th style="background-color:white">NO.</th>
+                    <th style="background-color:white">ITEMS</th>
+                    <th style="background-color:white">AMOUNT</th>
+                </tr>
+            </table>
+            <br/><hr>
+            <p id="total_payment" style="text-align: right;margin-right: auto; font-size: 20px;">hello</p>
+            <br/><hr/>
+            <p>Generated automatically. No signature is required.</p>
+        </div>
+
+
+         <br/>
+        <div style="text-align: center;">
+           <!-- <iframe id="downloadedCourse" width="800" height="500" src="https://firebasestorage.googleapis.com/v0/b/databaseezi.appspot.com/o/RECEIPT_2_HAZIQ?alt=media&token=1cdabc25-6d1c-49a9-9dc3-1287a33bc6b0" style="border: 1px solid black;"></iframe>  -->
+           <h2>Proof of payment</h2>
+           <p id="receipt"></p>
+        </div>
+        
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>       
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+            import { getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+            import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+            
+            const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+     
+
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const analytics = getAnalytics(app);
+
+            function checkuser(){
+                const auth = getAuth();
+                onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        // userid1.value = snapshot.val().userid;
+                        // userid2.innerHTML= "By : " + snapshot.val().userid;
+                    }
+                    })
+                } 
+                else {
+                    alert("Please Sign In! ");
+                    window.location.href= 'index.html';
+                }
+                });
+            }
+
+            window.addEventListener('load',checkuser);
+          
+            const queryString = window.location.search;
+            var a = queryString.substring(7, queryString.indexOf('@'));
+            let b = a.split("%20").join(" ").toUpperCase();
+            document.getElementById("index").value = b; // nama
+            let c = queryString.substring(queryString.indexOf('@')+1, queryString.indexOf('_'));
+            let d = c.split("%20").join(" ").toUpperCase();
+            document.getElementById("index2").value = d; // payment number
+            let e = queryString.substring(queryString.indexOf('_')+1, queryString.indexOf('&'));
+            let f = e.split("%20").join(" ").toUpperCase();
+            document.getElementById("index3").value = Number(f).toFixed(0); // amount
+            let g = queryString.substring(queryString.indexOf('&')+1, queryString.indexOf('$'));
+            let h = g.split("%20").join(" ").toUpperCase();
+
+            var money = h;
+            var int = money.indexOf(".");
+
+            if(int >=0){
+                var id = money.slice(0, int); 
+                var text = money.slice(int + 1);  // Gets the text part
+                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                id = id.replaceAll(",",".");
+                money = id +","+ text;  
+            }
+            else{
+                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                money = money.replaceAll(",",".");
+                money = money+",00";
+            }
+
+            document.getElementById("index4").value ="Rp. " + money; // baki lepas payment
+            let i = queryString.substring(queryString.indexOf('$')+1);
+            let j = i.split("%20").join(" ").toUpperCase();
+            document.getElementById("index5").value = j; // tarikh
+
+            const dbref = ref(db);
+            get(child(dbref, 'Payment/'+b +"/payment/"+d)).then((snapshot)=>{
+                receipt.innerHTML = '<iframe width="700" height="700" src="'+snapshot.val().receipt+' "></iframe>';
+                let a = Number(snapshot.val().receipt_no) ;
+                let b = a.toString().padStart(9, '0');
+                receipt_no.innerHTML = "Receipt Number : #RCP" + b;
+                document.getElementById("no_receipt").value = "#RCP" + b;
+                reference.innerHTML = "Reference : " + snapshot.val().reference;
+                userid1.value = snapshot.val().user;
+                userid2.innerHTML ="By : "+ snapshot.val().user;
+            })
+
+            function autoFill(){
+                var money = f;
+                var int = money.indexOf(".");
+
+                if(int >=0){
+                    var id = money.slice(0, int); 
+                    var text = money.slice(int + 1);  // Gets the text part
+                    id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    id = id.replaceAll(",",".");
+                    money = id +","+ text;  
+                }
+                else{
+                    money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    money = money.replaceAll(",",".");
+                    money = money+",00";
+                }
+
+                const dbref = ref(db);
+                get(child(dbref, 'Payment/'+b )).then((snapshot)=>{
+                    document.getElementById("nama").innerHTML = snapshot.val().name;
+                    document.getElementById("address").innerHTML = snapshot.val().alamat;
+                    document.getElementById("no_telefon").innerHTML = snapshot.val().no_telefon;
+                    document.getElementById("total_payment").innerHTML = "TOTAL : Rp. "+ money;
+                    document.getElementById("date_Pay").innerHTML = "Date : " + j;
+                    
+                })    
+            }
+
+            window.addEventListener('load', autoFill);
+
+            let updateBTN = document.getElementById('updateBTN');
+            let removeBTN = document.getElementById('removeBTN');
+            let printBTN = document.getElementById('printBTN');
+            let paybtn = document.getElementById('paybtn');
+            let back = document.getElementById('back');
+            // let table1 = document.getElementById('table1');
+            
+            updateBTN.addEventListener('click', UpdateData);
+            removeBTN.addEventListener('click', RemoveDate);
+            back.addEventListener('click',reverse);
+            paybtn.addEventListener('click',makepayment);
+            printBTN.addEventListener('click',createPDF);
+
+            let index = 1;
+
+            function GetProduct(){
+                const dbref = ref(db);
+                get(child(dbref,'Payment/'+b+"/product")).then((snapshot)=>{
+                    snapshot.forEach(std => {
+                        ProductListItem(std);
+                        index ++;
+                    }); 
+                });
+            }
+
+            function ProductListItem(std){
+                let key = std.key;
+                let value = std.val();
+                let date = document.createElement('tr');
+
+                var input = value.description;
+                var output = "";
+                output = input.replaceAll('\\n', '<br>');
+
+                if(value.image =="" || value.image == null || value.image == "HELLO" ){
+                    date.innerHTML = "<td>"+ index +'</td><td style="text-align:left"><div style="text-align:left;justify-content:left"><div>'+ output +"</div></td><td></td>";
+                }
+                else{
+                    date.innerHTML = "<td>"+ index +'</td><td style="text-align:left"><div style="text-align:left;justify-content:left"><div style="display:flex; align-items: center;justify-content: center"><img style="width:100px;height:100px;margin-right:5%; margin-left:5%" src="'+value.image+'"><div>'+ output +"</div></div></div></td><td></td>";
+                }
+                dataTable.append(date);                
+            } 
+
+            function makepayment(){
+                window.location.href= 'payment.html?index=' + b;
+            }
+            
+            function reverse(){
+                window.location.href= 'invoice.html?index=' + b;
+            }
+
+            function UpdateData(){
+                if (d == 0){
+                    alert("cannot update this payment!");
+                    return;
+                }
+                update(ref(db,'Payment/'+b +"/payment/"+d), {
+                    amount : document.getElementById("index3").value
+                }).then(()=>{
+                    alert("Payment Updated Successfully !");
+                    window.location.href= 'invoice.html?index=' + b;
+                }).catch((error)=>{
+                    alert(error);
+                    console.log(error);
+                })
+
+            }
+            function RemoveDate(){
+                if (d == 0){
+                    alert("cannot delete this payment!");
+                    return;
+                }
+                remove(ref(db,'Payment/'+b +"/payment/"+d ))
+                .then(()=>{
+                    alert("Payment Deleted Successfully !");
+                    window.location.href= 'invoice.html?index=' + b;
+                })
+                .catch((error)=>{
+                    alert("unsucessful");
+                    console.log(error);
+                })
+            }
+
+            function createPDF() {
+                var sTable = document.getElementById('table1').innerHTML;
+                var style = "<style>";
+                style = style + "table {border: 1px solid black; width: 100%;font: 12px Calibri; margin:10;}";
+                style = style + " th {border: 1px solid black; font-size: 18px;text-align: center;}";
+                style = style + " td {border: 1px solid black; font-size: 18px;text-align: center;}";
+                style = style + "</style>";
+
+                // CREATE A WINDOW OBJECT.
+                var win = window.open('', '', 'height=800,width=800');
+
+                win.document.write('<html><head>');
+                win.document.write('<title>RECEIPT OF PAYMENT</title>');   // <title> FOR PDF HEADER.
+                win.document.write(style);          // ADD STYLE INSIDE THE HEAD TAG.
+                win.document.write('</head>');
+                win.document.write('<body>');
+                win.document.write(sTable);         // THE TABLE CONTENTS INSIDE THE BODY TAG.
+                win.document.write('</body></html>');
+
+                //win.document.close(); 	// CLOSE THE CURRENT WINDOW.
+                //win.print();    // PRINT THE CONTENTS.
+            }
+
+            window.addEventListener('load',GetProduct);
+            </script>
+    </body>
+</html>
+

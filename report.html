@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Edit Footer</title>
+    <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+    <style>
+      
+      body 
+      {
+        font-family: "Lato", sans-serif;  
+        background-image: linear-gradient(aliceblue, rgb(142, 195, 242));
+        background-attachment: fixed;}
+
+      input, output
+      {
+        width: 100%;
+        height: 100px;
+      }
+      textarea{
+        height:30%;
+        width:30%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="color:blue; font-size: 45px;">Edit footer of Invoice here</h1>
+    <div>
+      <h2>Input original text</h2>
+      <textarea id="input"></textarea>
+      <br>
+      <button title="Update Footer" style="height: 45px; border-radius: 10px; background-color: rgb(0, 95, 139); color:white" id="process" onClick="onProcess()">UPDATE</button>
+      <button title="Return to Homepage" style="height: 45px; border-radius: 10px; background-color: darkred; color:white" id="back" onClick=window.location.href="homepage.html"><i style="color:white" class="fa fa-home"></i> HOME</button>
+    </div>
+    
+    <div style="display: none;">
+      <h2>Processed input</h2>
+      <textarea id="output"></textarea>
+    </div>
+
+    <div style="border :1px solid black">
+        <h2>Output</h2>
+        <p id="output2"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>       
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+            import { getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+            import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+            
+            const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+     
+
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const analytics = getAnalytics(app);
+
+            
+            function checkuser(){
+              const auth = getAuth();
+              onAuthStateChanged(auth, (user) => {
+              if (user) {
+                  get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+                  if(snapshot.exists()){
+                      if(snapshot.val().userid != "ezi2s1"){
+                          alert("Please Sign In with admin account! ");
+                          window.location.href= 'index.html';
+                      }
+                  }
+                  })
+              }
+              else {
+                alert("Please Sign In! ");
+                window.location.href= 'index.html';
+              }  
+              });
+          }
+
+            window.addEventListener('load',checkuser);
+
+            let process = document.getElementById("process");
+
+            process.addEventListener('click',onProcess);
+            window.addEventListener('load',onProcess2);
+
+
+            function onProcess(){
+                var input = document.getElementById("input").value;
+                if (!input){
+                alert("Invalid input");
+                return;
+                }
+                var output = "";
+                output = input.replace(/(?:\r\n|\r|\n)/g, '\\n');
+                document.getElementById("output").value = output;
+
+                update(ref(db,'draft'), {
+                    invoice : output
+                }).then(()=>{
+                    alert("Invoice Enclosure Updated Successfully !");
+                    window.location.href='report.html';
+                }).catch((error)=>{
+                    alert(error);
+                })
+
+
+
+                var output = "";
+            }
+            function onProcess2(){
+                const dbref = ref(db);
+                get(child(dbref, 'draft')).then((snapshot)=>{
+                var input = snapshot.val().invoice;
+                var output = "";
+                var output2 = "";
+                output = input.replaceAll('\\n', '\n');
+                output2 = input.replaceAll('\\n', '<br>');
+                document.getElementById("output").value = input;
+                document.getElementById("output2").innerHTML = output2;
+                document.getElementById("input").value = output;
+            })
+                if (!input){
+                alert("Invalid input");
+                return;
+                }
+                // var output = "";
+                // output = input.replaceAll('\\n', '\n');
+                // document.getElementById("output2").value = output;
+                var output = "";
+            }
+    </script>
+
+  </body>
+  
+</html>

@@ -1,0 +1,779 @@
+
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>Sale Report</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+    </head>
+    <style>
+        p{text-align: left; font-weight: bold ;}
+        td {border: 1px solid black;text-align: left; width: auto;}
+        th {border: 1px solid black; }
+        table {border: 1px solid black; }
+        body {font-family: "Lato", sans-serif; text-align: center; background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; margin: 5%;}
+
+    </style>
+    <body>
+        <h1></h1>
+        <p id="datechoose"></p>
+
+        <label>Day</label>
+        <select id="chooseday" name="chooseday" onchange="this.className=this.options[this.selectedIndex].className" >
+            <option>-</option>
+        </select>
+        
+
+        <label>Month</label>
+        <select id="choosemonth" name="choosemonth" onchange="this.className=this.options[this.selectedIndex].className">
+            <option>-</option>
+        </select>
+
+        <label>Year</label>
+        <select id="chooseyear" name="chooseyear" onchange="this.className=this.options[this.selectedIndex].className">
+            <option>-</option>
+            <option class="2023"  value="2023" >2023</option>
+            <option class="2024" value="2024" >2024</option>
+            <option class="2025" value="2025" >2025</option>
+            <option class="2026" value="2026" >2026</option>
+            <option class="2027" value="2027" >2027</option>
+        </select>
+        <button id="getDateBtn"><i class="fa fa-search" ></i></button>
+        <button title="Return to Homepage" onclick="window.location.href='homepage.html'"><i class="fa fa-home"></i> HOME</button>
+        <br/><br/>
+
+        <div style="align-content: center;width: auto; height:50%;overflow:auto; border: 0.5px solid black;">
+            <table class="center" id="ListofUser" style=" width: 100%; align-items: center; text-align: center;">
+                <tr>
+                    <th style="background-color:rgb(12, 105, 255); color: white;">NO</th>
+                    <th style="background-color:rgb(12, 105, 255); color: white;">RECEIPT NO.</th>
+                    <th style="background-color:rgb(12, 105, 255); color: white;">NAME</th>
+                    <th style="background-color:rgb(12, 105, 255); color: white;">DATE</th>
+                    <th style="background-color:rgb(12, 105, 255); color: white;">DEBIT </th>
+                    <th style="background-color:rgb(12, 105, 255); color: white;">CREDIT </th>
+                    <th style="background-color:rgb(12, 105, 255); color: white;">VIEW </th>
+                </tr>
+            </table><br/><br/>
+        </div>
+        <!-- <label>Total Payment : Rp. </label> -->
+        <p id="TOTAL1"></p>
+        <!-- <label>Total Payment Voucher : Rp. </label> -->
+        <p id="TOTAL2"></p>
+        <!-- <label>Total Credit Note : Rp. </label> -->
+        <p id="TOTAL3"></p>
+        <!-- <label>Total Cash Sale : Rp. </label> -->
+        <p id="TOTAL4"></p>
+        
+        <!-- <ul id="myUL"></ul> -->
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+        import {getDatabase, ref, set, push,child, onValue,remove,get,update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+        import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+        const dbref = ref(database);
+
+        function generateoption(){
+            for(let x=1; x<=31; x++){
+                var row = "";
+                row = "<option class="+ String(x).padStart(2,'0') + "value=" + String(x).padStart(2,'0') +">"+ String(x).padStart(2,'0') +"</option>";
+                $(row).appendTo("#chooseday");
+            }
+            for(let x=1; x<=12; x++){
+                var row = "";
+                row = "<option class="+ String(x).padStart(2,'0') + "value=" + String(x).padStart(2,'0') +">"+ String(x).padStart(2,'0') +"</option>";
+                $(row).appendTo("#choosemonth");
+            }
+        }
+
+        window.addEventListener('load',generateoption);
+
+        
+
+        let getDateBtn = document.getElementById("getDateBtn");
+        getDateBtn.addEventListener('click',getDate);
+        getDateBtn.addEventListener('click',GetCN);
+        getDateBtn.addEventListener('click',GetPV);
+        getDateBtn.addEventListener('click',GetPackage);
+        getDateBtn.addEventListener('click',GetCS);
+
+        let TOTAL = 0;
+        let TOTAL_SALE = 0;
+        let TOTAL_PV = 0;
+        let TOTAL_CN = 0;
+        let TOTAL_CS = 0;
+
+        function getDate(){
+            var selector = document.getElementsByName("chooseday")[0];
+            var value1 = selector[selector.selectedIndex].value;
+            var selector = document.getElementsByName("choosemonth")[0];
+            var value2 = selector[selector.selectedIndex].value;
+            var selector = document.getElementsByName("chooseyear")[0];
+            var value3 = selector[selector.selectedIndex].value;
+            if (value3 == "" || value3 == null || value3 == "-"){ // no date choose
+                datechoose.innerHTML = "";
+            }
+            else if (value2 == "" || value2 == null || value2 == "-"){ // only choose year
+                datechoose.innerHTML = value3;
+            }
+            else if(value1 == "" || value1 == null || value1 == "-"){ // choose year and month
+                datechoose.innerHTML = value2+"/"+value3;
+            }
+            else{
+                datechoose.innerHTML = value1+"/"+value2+"/"+value3; // choose year, month and day
+            }
+
+            
+        }
+
+        function GetCS(){
+            //TOTAL_CS = 0;
+            let x_CS = 0;
+            const dbref = ref(database);
+            get(child(dbref,'CashSale')).then((snapshot)=>{
+                snapshot.forEach(std => {
+                    let date = document.createElement("tr");
+
+                    if (datechoose.innerHTML == "" || datechoose.innerHTML == null){
+                        date.innerHTML = "<td>"+no+".</td><td>#CS"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ std.val().date 
+                            +"</td><td style='color:blue; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td><td></td>"+
+                            `<td style="text-align:center"><button title="View details" onclick="window.location.href='editCashSale.html?index=`
+                                    +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                                
+                        ListofUser.append(date);
+                        no++;
+                        x_CS = Number(x_CS) + Number(std.val().amount);
+                    }
+                    else if(((datechoose.innerHTML).length) == 4){
+                        var print_date = std.val().date;
+                        var new_date = print_date[6] + print_date[7] + print_date[8] + print_date[9];
+                        if(datechoose.innerHTML == new_date){
+                            date.innerHTML = "<td>"+no+".</td><td>#CS"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ print_date 
+                                +"</td><td style='color:blue; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td><td></td>"+
+                                `<td style="text-align:center"><button title="View details" onclick="window.location.href='editCashSale.html?index=`
+                                        +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date);
+                            no++;
+                            x_CS = Number(x_CS) + Number(std.val().amount);
+                        }
+                    }
+                    else if(((datechoose.innerHTML).length) == 7){
+                        var print_date = std.val().date;
+                        var new_date = print_date[3] + print_date[4] + print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9]
+                        if(datechoose.innerHTML == new_date){
+                            date.innerHTML = "<td>"+no+".</td><td>#CS"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ print_date 
+                                +"</td><td style='color:blue; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td><td></td>"+
+                                    `<td style="text-align:center"><button title="View details" onclick="window.location.href='editCashSale.html?index=`
+                                            +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date);
+                            no++;
+                            x_CS = Number(x_CS) + Number(std.val().amount);
+                        }
+
+                    }
+                    else if(((datechoose.innerHTML).length) == 10){
+                        var print_date = std.val().date;
+                        var new_date = print_date[0] +print_date[1] +print_date[2] + print_date[3] + print_date[4] + print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9]
+                        if(datechoose.innerHTML == new_date){
+                            date.innerHTML = "<td>"+no+".</td><td>#CS"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ print_date 
+                                +"</td><td style='color:blue; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td><td></td>"+
+                                    `<td style="text-align:center"><button title="View details" onclick="window.location.href='editCashSale.html?index=`
+                                            +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date);
+                            no++;
+                            x_CS = Number(x_CS) + Number(std.val().amount);
+                        }
+
+                    }
+                    TOTAL4.innerHTML = "Total Cash Sale : Rp. " +Number(x_CS).toFixed(2);
+
+                }); 
+            });
+        }
+
+        function GetPV(){
+            TOTAL_PV = 0;
+            let x_PV = 0;
+            const dbref = ref(database);
+            get(child(dbref,'PaymentVoucher')).then((snapshot)=>{
+                snapshot.forEach(std => {
+                    let date = document.createElement("tr");
+
+                    if (datechoose.innerHTML == "" || datechoose.innerHTML == null){
+                        date.innerHTML = "<td>"+no+".</td><td>#PV"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ std.val().date 
+                            +"</td><td></td><td style='color:red; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td>"+
+                            `<td style="text-align:center"><button title="View details" onclick="window.location.href='editPVoucher.html?index=`
+                                    +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                                
+                        ListofUser.append(date);
+                        no++;
+                        x_PV = Number(x_PV) + Number(std.val().amount);
+                    }
+                    else if(((datechoose.innerHTML).length) == 4){
+                        var print_date = std.val().date;
+                        var new_date = print_date[6] + print_date[7] + print_date[8] + print_date[9];
+                        if(datechoose.innerHTML == new_date){
+                            date.innerHTML = "<td>"+no+".</td><td>#PV"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ print_date 
+                            +"</td><td></td><td style='color:red; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td>"+
+                            `<td style="text-align:center"><button title="View details" onclick="window.location.href='editPVoucher.html?index=`
+                                    +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date);
+                            no++;
+                            x_PV = Number(x_PV) + Number(std.val().amount);
+                        }
+                        
+                    }
+                    else if(((datechoose.innerHTML).length) == 7){
+                        var print_date = std.val().date;
+                        var new_date = print_date[3] + print_date[4] + print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9]
+                        if(datechoose.innerHTML == new_date){
+                            date.innerHTML = "<td>"+no+".</td><td>#PV"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ print_date 
+                                +"</td><td></td><td style='color:red; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td>"+
+                                    `<td style="text-align:center"><button title="View details" onclick="window.location.href='editPVoucher.html?index=`
+                                            +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date);
+                            no++;
+                            x_PV = Number(x_PV) + Number(std.val().amount);
+                        }
+                    }
+                    else if(((datechoose.innerHTML).length) == 10){
+                        var print_date = std.val().date;
+                        var new_date = print_date[0] +print_date[1] +print_date[2] + print_date[3] + print_date[4] + print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9]
+                        if(datechoose.innerHTML == new_date){
+                            date.innerHTML = "<td>"+no+".</td><td>#PV"+std.key+"</td><td>"+ std.val().name +"</td><td>"+ print_date 
+                                +"</td><td></td><td style='color:red; text-align : right'>Rp. "+ Number(std.val().amount).toFixed(2) +"</td>"+
+                                    `<td style="text-align:center"><button title="View details" onclick="window.location.href='editPVoucher.html?index=`
+                                            +std.key+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date);
+                            no++;
+                            x_PV = Number(x_PV) + Number(std.val().amount);
+                        }
+                    }
+                    TOTAL2.innerHTML = "Total Payment Voucher : Rp. " + Number(x_PV).toFixed(2);
+                }); 
+            });            
+        }
+
+        function GetCN(){
+            TOTAL3.innerHTML = "Total Credit Note : Rp. 0,00";
+            get(child(dbref,'CreditNote')).then((snapshot)=>{
+                snapshot.forEach(std => {
+                    CNList(std);
+                }); 
+            });
+        }
+
+        function CNList(std){
+            let x_CN = 0;
+            let key = std.key;
+            let value = std.val();
+            let x ;
+            let y = value.creditnote_no;
+            //TOTAL3.innerHTML = "Total Credit Note : Rp. 0,00";
+            
+            if (datechoose.innerHTML == "" || datechoose.innerHTML == null){
+                for(x = 1; x <= y ; x++){
+                    let a = x;
+                    let date1 = document.createElement('tr');                    
+                    get(child(dbref,'CreditNote/'+ key +"/CreditNote/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var receipt_no = snapshot.val().cn_no;
+                        date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                            +"</td><td></td><td style='color:blue; text-align : right'>Rp. "+ money +"</td>"+
+                                `<td style="text-align:center"><button title="View details" onclick="window.location.href='CN.html?index=`
+                                        +key+"@"+a+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                        ListofUser.append(date1);
+                        no++;
+                        x_CN = Number(x_CN) + Number(snapshot.val().amount);
+
+                        var money1 = x_CN.toString();
+                        var index1 = money1.indexOf("."); 
+                            if(index >=0){
+                                var id1 = money1.slice(0, index1); 
+                                var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id1 = id1.replaceAll(",",".");
+                                money1 = id1 +","+ text1;  
+                            }
+                            else{
+                                money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money1 = money1.replaceAll(",",".");
+                                money1 = money1+",00";
+                            }
+                        TOTAL3.innerHTML = "Total Credit Note : Rp. " + money1;
+                    });
+                }
+            }
+            else if(((datechoose.innerHTML).length) == 4){
+                for(x = 1; x <= y ; x++){
+                    let a = x;                     
+                    get(child(dbref,'CreditNote/'+ key +"/CreditNote/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var new_date = print_date[6] + print_date[7] + print_date[8] + print_date[9];
+                        if(datechoose.innerHTML == new_date){
+                            let date1 = document.createElement('tr'); 
+                            var receipt_no = snapshot.val().cn_no;
+                            date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                                +"</td><td></td><td style='color:blue; text-align : right'>Rp. "+ money +"</td>"+
+                                `<td style="text-align:center"><button title="View details" onclick="window.location.href='CN.html?index=`
+                                        +key+"@"+a+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date1);
+                            no++;
+                            x_CN = Number(x_CN) + Number(snapshot.val().amount);
+                            var money1 = x_CN.toString();
+                            var index1 = money1.indexOf("."); 
+                                if(index >=0){
+                                    var id1 = money1.slice(0, index1); 
+                                    var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                    id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    id1 = id1.replaceAll(",",".");
+                                    money1 = id1 +","+ text1;  
+                                }
+                                else{
+                                    money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    money1 = money1.replaceAll(",",".");
+                                    money1 = money1+",00";
+                                }
+                            TOTAL3.innerHTML = "Total Credit Note : Rp. " + money1;
+                        }else{
+                            TOTAL3.innerHTML = "Total Credit Note : Rp. 0,00";
+                        }  
+                    });
+                }
+            }
+            else if(((datechoose.innerHTML).length) == 7){
+                for(x = 1; x <= y ; x++){
+                    let a = x;                                         
+                    get(child(dbref,'CreditNote/'+ key +"/CreditNote/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var new_date = print_date[3] + print_date[4] +print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9];
+                        if(datechoose.innerHTML == new_date){
+                            let date1 = document.createElement('tr'); 
+                            var receipt_no = snapshot.val().cn_no;
+                            date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                                +"</td><td></td><td style='color:blue; text-align : right'>Rp. "+ money +"</td>"+
+                                `<td style="text-align:center"><button title="View details" onclick="window.location.href='CN.html?index=`
+                                        +key+"@"+a+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date1);
+                            no++;
+                            x_CN = Number(x_CN) + Number(snapshot.val().amount);
+                            var money1 = x_CN.toString();
+                            var index1 = money1.indexOf("."); 
+                                if(index >=0){
+                                    var id1 = money1.slice(0, index1); 
+                                    var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                    id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    id1 = id1.replaceAll(",",".");
+                                    money1 = id1 +","+ text1;  
+                                }
+                                else{
+                                    money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    money1 = money1.replaceAll(",",".");
+                                    money1 = money1+",00";
+                                }
+                            TOTAL3.innerHTML = "Total Credit Note : Rp. " + money1;
+                        }else{
+                            TOTAL3.innerHTML = "Total Credit Note : Rp. 0,00";
+                        }  
+                    });
+                }
+            }
+            else if(((datechoose.innerHTML).length) == 10){
+                for(x = 1; x <= y ; x++){ 
+                    let a = x;
+                    get(child(dbref,'CreditNote/'+ key +"/CreditNote/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var new_date = print_date[0] +print_date[1] +print_date[2] + print_date[3] + print_date[4] + print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9]
+                        if(datechoose.innerHTML == new_date){
+                            let date1 = document.createElement('tr'); 
+                            var receipt_no = snapshot.val().cn_no;
+                            date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                                +"</td><td></td><td style='color:blue; text-align : right'>Rp. "+ money +"</td>"+
+                                `<td style="text-align:center"><button title="View details" onclick="window.location.href='CN.html?index=`
+                                        +key+"@"+a+`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date1);
+                            no++;
+                            x_CN = Number(x_CN) + Number(snapshot.val().amount);
+                            var money1 = x_CN.toString();
+                            var index1 = money1.indexOf("."); 
+                                if(index >=0){
+                                    var id1 = money1.slice(0, index1); 
+                                    var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                    id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    id1 = id1.replaceAll(",",".");
+                                    money1 = id1 +","+ text1;  
+                                }
+                                else{
+                                    money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    money1 = money1.replaceAll(",",".");
+                                    money1 = money1+",00";
+                                }
+                            TOTAL3.innerHTML = "Total Credit Note : Rp. " + money1;
+                        }else{
+                            TOTAL3.innerHTML = "Total Credit Note : Rp. 0,00";
+                        }  
+                    });
+                    
+                }
+            } 
+            
+            
+        }
+
+        let no = 1;
+        let x_SALE = 0;
+        function GetPackage(){
+            TOTAL1.innerHTML = "Total Sale : Rp. 0,00" ;
+            x_SALE = 0;
+            no = 1;
+            $('#ListofUser').find("tr:not(:first)").remove();
+            get(child(dbref,'Payment')).then((snapshot)=>{
+                snapshot.forEach(std => {
+                    PackageListItem(std);
+                }); 
+            });
+        }
+
+        function PackageListItem(std){
+            let key = std.key;
+            let value = std.val();
+            // let no ;
+            let name = value.name;
+            let x ;
+            let y = value.payment_no;
+            //number =  number + `<p>Number Of Payment : ` + y +'</p>' ;
+            if (datechoose.innerHTML == "" || datechoose.innerHTML == null){
+                for(x = 1; x <= y ; x++){ 
+                    let a = x;//let date = document.createElement('li');
+                    let date1 = document.createElement('tr');
+                    let number = "";
+                    let text = "";                     
+                    get(child(dbref,'Payment/'+ name +"/payment/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var new_date = print_date[6] + print_date[7] + print_date[8] + print_date[9];
+                        text =  `<p>Rp. ` +  Number(snapshot.val().amount).toFixed(2)+`</p>` ;
+                        number = `<p>` + print_date +`</p>` ;
+                        var receipt_no = snapshot.val().receipt_no;
+                        receipt_no ="#RCP" + receipt_no.toString().padStart(9, '0');
+                        //date.innerHTML = `<p style="font-weight:bold">`+key+`</p>` + text + number;
+                        //myUL.append(date);
+                        date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                            +"</td><td style='color:green; text-align : right'>Rp. "+ money 
+                                +`</td><td></td><td style="text-align:center"><button title="View details" onclick="window.location.href='proof_payment.html?index=`
+                                    +name+"@"+a+"_"+snapshot.val().amount+"&"+snapshot.val().baki_after_payment+"$"+print_date
+                                    +`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                        ListofUser.append(date1);
+                        no++;
+                        x_SALE = Number(x_SALE) + Number(snapshot.val().amount);
+
+                        var money1 = x_SALE.toString();
+                        var index1 = money1.indexOf("."); 
+                            if(index >=0){
+                                var id1 = money1.slice(0, index1); 
+                                var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id1 = id1.replaceAll(",",".");
+                                money1 = id1 +","+ text1;  
+                            }
+                            else{
+                                money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money1 = money1.replaceAll(",",".");
+                                money1 = money1+",00";
+                            }
+                        TOTAL1.innerHTML = "Total Sale : Rp. " + money1;
+                    });
+                }
+            }
+            else if(((datechoose.innerHTML).length) == 4){
+                for(x = 1; x <= y ; x++){ 
+                    let a = x;
+                    //let date = document.createElement('li');
+                    let date1 = document.createElement('tr');
+                    let number = "";
+                    let text = "";                     
+                    get(child(dbref,'Payment/'+ name +"/payment/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var new_date = print_date[6] + print_date[7] + print_date[8] + print_date[9];
+                        if(datechoose.innerHTML == new_date){
+                            text =  `<p>Rp. ` +  Number(snapshot.val().amount).toFixed(2)+`</p>` ;
+                            number = `<p>` + new_date +`</p>` ;
+                            //date.innerHTML = `<p style="font-weight:bold">`+key+`</p>` + text + number;
+                            //myUL.append(date);
+                            var receipt_no = snapshot.val().receipt_no;
+                            receipt_no ="#RCP" + receipt_no.toString().padStart(9, '0');
+                            date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                                +"</td><td style='color:green; text-align : right'>Rp. "+ money 
+                                    +`</td><td></td><td style="text-align:center"><button title="View details" onclick="window.location.href='proof_payment.html?index=`
+                                        +name+"@"+a+"_"+snapshot.val().amount+"&"+snapshot.val().baki_after_payment+"$"+print_date
+                                        +`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date1);
+                            no++;
+                            x_SALE = Number(x_SALE) + Number(snapshot.val().amount);
+
+                            var money1 = x_SALE.toString();
+                            var index1 = money1.indexOf("."); 
+                                if(index >=0){
+                                    var id1 = money1.slice(0, index1); 
+                                    var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                    id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    id1 = id1.replaceAll(",",".");
+                                    money1 = id1 +","+ text1;  
+                                }
+                                else{
+                                    money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    money1 = money1.replaceAll(",",".");
+                                    money1 = money1+",00";
+                                }
+                            TOTAL1.innerHTML = "Total Sale : Rp. " + money1;
+                        } 
+                    });
+                }
+            }
+            else if(((datechoose.innerHTML).length) == 7){
+                for(x = 1; x <= y ; x++){ 
+                    let a = x;
+                    //let date = document.createElement('li');
+                    let date1 = document.createElement('tr');
+                    let number = "";
+                    let text = "";                     
+                    get(child(dbref,'Payment/'+ name +"/payment/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var new_date = print_date[3] + print_date[4] + print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9]
+                        if(datechoose.innerHTML == new_date){
+                            text =  `<p>Rp. ` +  Number(snapshot.val().amount).toFixed(2)+`</p>` ;
+                            number = `<p>` + new_date +`</p>` ;
+                            // date.innerHTML = `<p style="font-weight:bold">`+key+`</p>` + text + number;
+                            // myUL.append(date);
+                            var receipt_no = snapshot.val().receipt_no;
+                            receipt_no ="#RCP" + receipt_no.toString().padStart(9, '0');
+
+                            date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                                +"</td><td style='color:green; text-align : right'>Rp. "+ money 
+                                    +`</td><td></td><td style="text-align:center"><button title="View details" onclick="window.location.href='proof_payment.html?index=`
+                                        +name+"@"+a+"_"+snapshot.val().amount+"&"+snapshot.val().baki_after_payment+"$"+print_date
+                                        +`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date1);
+                            no++;
+                            x_SALE = Number(x_SALE) + Number(snapshot.val().amount);
+                            var money1 = x_SALE.toString();
+                            var index1 = money1.indexOf("."); 
+                                if(index >=0){
+                                    var id1 = money1.slice(0, index1); 
+                                    var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                    id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    id1 = id1.replaceAll(",",".");
+                                    money1 = id1 +","+ text1;  
+                                }
+                                else{
+                                    money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    money1 = money1.replaceAll(",",".");
+                                    money1 = money1+",00";
+                                }
+                            TOTAL1.innerHTML = "Total Sale : Rp. " + money1;
+                        }      
+                    });
+                }
+            }
+            else if(((datechoose.innerHTML).length) == 10){
+                for(x = 1; x <= y ; x++){
+                    let a = x; 
+                    //let date = document.createElement('li');
+                    let date1 = document.createElement('tr');
+                    let number = "";
+                    let text = "";                     
+                    get(child(dbref,'Payment/'+ name +"/payment/"+x)).then((snapshot)=>{
+
+                        var money = (snapshot.val().amount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                        var print_date = snapshot.val().date;
+                        var new_date = print_date[0] +print_date[1] +print_date[2] + print_date[3] + print_date[4] + print_date[5] + print_date[6] + print_date[7] + print_date[8] + print_date[9]
+                        if(datechoose.innerHTML == new_date){
+                            text =  `<p>Rp. ` +  Number(snapshot.val().amount).toFixed(2)+`</p>` ;
+                            number = `<p>` + new_date +`</p>` ;
+                            // date.innerHTML = `<p style="font-weight:bold">`+key+`</p>` + text + number;
+                            // myUL.append(date);
+                            var receipt_no = snapshot.val().receipt_no;
+                            receipt_no ="#RCP" + receipt_no.toString().padStart(9, '0');
+                            
+                            date1.innerHTML = "<td>"+no+".</td><td>"+receipt_no+"</td><td>"+ key +"</td><td>"+ print_date 
+                                +"</td><td style='color:green; text-align : right'>Rp. "+ money 
+                                    +`</td><td></td><td style="text-align:center"><button title="View details" onclick="window.location.href='proof_payment.html?index=`
+                                        +name+"@"+a+"_"+snapshot.val().amount+"&"+snapshot.val().baki_after_payment+"$"+print_date
+                                        +`'"><i class="fa fa-chevron-right" style="color:blue"></i></button></td>`;
+                            ListofUser.append(date1);
+                            no++;
+                            x_SALE = Number(x_SALE) + Number(snapshot.val().amount);
+                            var money1 = x_SALE.toString();
+                            var index1 = money1.indexOf("."); 
+                                if(index >=0){
+                                    var id1 = money1.slice(0, index1); 
+                                    var text1 = money1.slice(index1 + 1);  // Gets the text part
+                                    id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    id1 = id1.replaceAll(",",".");
+                                    money1 = id1 +","+ text1;  
+                                }
+                                else{
+                                    money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                    money1 = money1.replaceAll(",",".");
+                                    money1 = money1+",00";
+                                }
+                            TOTAL1.innerHTML = "Total Sale : Rp. " + money1;
+                        } 
+                    });
+                }
+            }  
+        } 
+
+        window.addEventListener('load',GetPackage);
+        window.addEventListener('load',GetPV);
+        window.addEventListener('load',GetCN);
+        window.addEventListener('load',GetCS);
+
+        </script>
+
+    </body>
+</html>

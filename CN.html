@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CREDIT NOTE</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            label{
+            display:inline-block;
+            font-size: 20px;
+            /* font-family: Arial, Helvetica, sans-serif; */
+            width: 220px; 
+            font-weight: bold;
+            }
+           input,textarea{
+            font-size: 20px;
+            /* font-family: Arial, Helvetica, sans-serif; */
+            width: 220px; 
+            text-align: center;
+            }
+            body{
+                text-align: left;
+                 background-image: linear-gradient(aliceblue, rgb(142, 195, 242) );background-attachment: fixed; 
+                /*background-color: aliceblue;*/
+
+            }
+            button{
+                padding: 10px 30px;
+                border-radius: 10px;
+                font-size: 20px;
+                font-weight: bold;
+            }
+            h1{
+            color:rgb(0, 60, 255); 
+            text-align: center; 
+            font-size: 40px; 
+            font-weight: bold; 
+            font-style: italic;
+            
+        }
+            
+        </style>
+    </head>
+    <body>
+        <h1>Edit / Create Credit Note Here</h1>
+        <div class="review" style="margin-left: 20%;">
+            <label>NAME :</label>
+            <input type="text" disabled id="test1" placeholder="Enter Name" onkeyup="this.value = this.value.toUpperCase();"/><br/><br/>
+            <label>AMOUNT :</label>
+            <input type="text" id="test2" placeholder="Enter amount" /><br/><br/>
+            <label>REFERENCE :</label>            
+            <textarea type="text" id="test3" placeholder="Enter reference" ></textarea><br/><br/>
+            <label>DATE :</label>            
+            <input type="text" disabled id="test4"/><br/><br/>
+            <label>RECEIPT NO :</label>            
+            <input type="text" disabled id="test5"/><br/><br/>
+            <label>CREDIT NOTE NUMBER :</label>            
+            <input type="text" disabled id="test6"/><br/><br/>
+            <label>BY :</label>            
+            <input type="text" disabled id="userid1"/><br/><br/>
+        </div><br/><br/>
+
+        <div style="margin-left: 20%;">
+            <button title="Update Credit Note" id="updCN" style="background-color: blue; color: white;">UPDATE</button>
+            <button title="Delete Credit Note" id="delCN" style="background-color: red; color: white;">DELETE</button>
+            <button title="Homepage" id="btn" style="background-color :rgb(170, 0, 255); color:white;" onclick="window.location.href='homepage.html'"><i class="fa fa-home" ></i> HOME</button>
+            <button title="Print the Credit Note" id="print" style="background-color :rgb(255, 230, 0); color:black;"><i class="fa fa-print" ></i> PRINT</button>
+
+        </div><br/><br/>
+
+        <div id="table1" style="display: none;" >
+            <div id="company_info" style="margin: 5px; display: flex; ">
+                <img src="./logo.jpg" style="border:4px solid rgb(255, 198, 43); width:100px; height:100px; margin-top: 30px;transform: rotate(45deg);margin-left: 1%;">
+                <div id="company_address" style="margin-left: 30px; margin-top: 20px;" >
+                    <p style="line-height: 0.5; font-weight: bold;">PT. EZI2 TRAVEL MKS (759360-P)</p>
+                    <p style="line-height: 0.5; ">JL. AP PETTARANI,</p>
+                    <p style="line-height: 0.5;">KOMPLEKS NEW RUKO ZAMRUD,</p>
+                    <p style="line-height: 0.5;">BLOK F NO. 10,</p>
+                    <p style="line-height: 0.5;">MAKASSAR, SELAWESI SELATAN</p>
+                    <p style="line-height: 0.5;">PHONE : +62 823-2428-6457 / </p>
+                    <p style="line-height: 0.5;">+62 853-9916-8057 </p>
+                    <p style="line-height: 0.5;">Email : ezi2travel.makassar@gmail.com /</p>
+                </div>
+                <div id="invoice_title" style="margin-left: 100px;" >
+                    <div>
+                        <h1>CREDIT NOTE</h1>
+                        <p id="receipt_no"></p>
+                    </div>
+                    <div>
+                        <p id="date_Pay"></p>
+                    </div>
+                    <div>
+                        <p id="reference"></p>
+                    </div>
+                    <div>
+                        <p id="userid2"></p>
+                    </div>
+                </div>
+            </div>
+            <br/><br/><hr>
+            <div id="customer" >
+                <h3 >CUSTOMER : </h3>
+                <p id="nama" ></p>
+                <p id="address"></p>
+                <p id="no_telefon" ></p>
+            </div>
+            <hr><br/>
+            
+            <table id="dataTable" style="width: 100%; height: 30px; margin-left:auto;margin-right:auto; text-align:center">
+                <tr>
+                    <th style="background-color:white">NO.</th>
+                    <th style="background-color:white">ITEMS</th>
+                    <th style="background-color:white">AMOUNT</th>
+                </tr>
+            </table>
+            
+            <br/><hr/>
+            <p>Generated automatically. No signature is required.</p>
+        </div>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+            import {getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+            import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        
+            const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+        
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const analytics = getAnalytics(app);
+            const dbref = ref(db);
+
+            const queryString = window.location.search;
+            var x = queryString.substring(7, queryString.indexOf('@'));
+            let y = x.split("%20").join(" ").toUpperCase();
+            document.getElementById("test1").value = y; // nama
+
+            let u = queryString.substring(queryString.indexOf('@')+1);
+            document.getElementById("test6").value = u; // cn number
+
+            window.addEventListener('load',checkuser);
+        
+            function checkuser(){
+                const auth = getAuth();
+                onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        userid1.value = snapshot.val().userid;
+                        userid2.innerHTML = "By : " + snapshot.val().userid;
+                    }
+                    })
+                } 
+                else {
+                    alert("Please Sign In! ");
+                    window.location.href= 'index.html';
+                }
+                });
+            }
+        
+            
+            window.addEventListener('load',retdata);
+            
+            function retdata(){
+                if(test1.value == "" || test1.value == null || y == "" || y == null){
+                    test2.value = "";
+                    test3.value = "";
+                    test4.value = new Date().toLocaleDateString('en-GB');
+                    get(child(dbref, 'number')).then((snapshot)=>{
+                        let a = (Number(snapshot.val().creditNote_no)+1);
+                        let b = a.toString().padStart(9, '0');
+                        test5.value = "#CN" + b;
+                        document.getElementById("receipt_no").innerHTML = "RECEIPT NO : #CN" + b;
+                        document.getElementById("date_Pay").innerHTML ="DATE : " + new Date().toLocaleDateString('en-GB');
+
+                    })
+                }
+                else{
+                    get(child(dbref, 'CreditNote/' + y+"/CreditNote/"+ test6.value)).then((snapshot)=>{
+                        if(snapshot.exists()){
+                            test2.value = snapshot.val().amount;
+
+                            var money = (snapshot.val().amount).toString();
+                            var index = money.indexOf("."); 
+                                if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                            test3.value = snapshot.val().reference;
+                            test4.value = snapshot.val().date;
+                            nama.innerHTML = test1.value;
+                            userid1.value = snapshot.val().user;
+                            userid2.innerHTML ="By : "+ snapshot.val().user;
+                            let date = document.createElement("tr");
+                            date.innerHTML = "<td></td><td>Total Returned :</td><td>Rp. "+money+"</td>";
+                            dataTable.append(date);
+                            test5.value = snapshot.val().cn_no;
+                            document.getElementById("receipt_no").innerHTML = "RECEIPT NO : " + test5.value;
+                            document.getElementById("date_Pay").innerHTML = "DATE : " + snapshot.val().date;
+
+                            get(child(dbref, 'Payment/' + y)).then((snapshot)=>{
+                                address.innerHTML = snapshot.val().alamat;
+                                no_telefon.innerHTML = snapshot.val().no_telefon;
+                            })
+
+                        }
+
+                        else{
+                            alert("Credit note does not exist");
+                            test2.value = "";
+                            test3.value = "";
+                            test4.value = new Date().toLocaleDateString('en-GB');
+                            get(child(dbref, 'number')).then((snapshot)=>{
+                                let a = (Number(snapshot.val().creditNote_no)+1);
+                                let b = a.toString().padStart(9, '0');
+                                test5.value = "#CN" + b;
+                                document.getElementById("receipt_no").innerHTML = "RECEIPT NO : #CN" + b;
+                                document.getElementById("date_Pay").innerHTML ="DATE : " + new Date().toLocaleDateString('en-GB');
+
+                            })
+                        }
+                    })
+                    .catch((error)=>{
+                        alert("unsucessful1");
+                        console.log(error);
+                    })  
+                }
+            } 
+
+            function updCreditN(){
+                get(child(dbref, 'CreditNote/' + y+ "/CreditNote/"+u)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        update(ref(db,'CreditNote/' + y+ "/CreditNote/"+u), {
+                        amount : test2.value,
+                        reference : test3.value,
+                        date : test4.value,
+                        user : userid1.value 
+                        })
+                        alert("Credit Note Update Sucessfully");
+                    }
+                    else{
+                        alert("Credit note to this name does not exist, please create");
+                        return; 
+                    }
+                })
+                .catch((error)=>{
+                    alert("unsucessful3");
+                    console.log(error);
+                })
+
+            }
+
+            function delCreditN(){
+                get(child(dbref, 'CreditNote/' + y+ "/CreditNote/"+u)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        remove(ref(db,'CreditNote/' + y+ "/CreditNote/"+u))
+                        .then(()=>{
+                            alert("Credit Note Deleted Successfully !");
+                        })
+                        .catch((error)=>{
+                            alert("unsucessful4");
+                            console.log(error);
+                        })
+                    }
+                    else{
+                        alert("Credit note does not exist");
+                        return; 
+                    }
+                })
+                .catch((error)=>{
+                    alert("unsucessful5");
+                    console.log(error);
+                })
+            }
+            updCN.addEventListener('click',updCreditN);
+            delCN.addEventListener('click',delCreditN);
+            
+            var print = document.getElementById("print");
+            print.addEventListener('click',createPDF);
+            function createPDF(){
+                var sTable = document.getElementById('table1').innerHTML;
+                var style = "<style>";
+                style = style + "table {border: 1px solid black; width: 100%;font: 12px Calibri; margin:10;}";
+                style = style + " th {border: 1px solid black; font-size: 18px;text-align: center;}";
+                style = style + " td {font-size: 18px;text-align: center;}";
+                style = style + "</style>";
+
+                // CREATE A WINDOW OBJECT.
+                var win = window.open('', '', 'height=800,width=800');
+
+                win.document.write('<html><head>');
+                win.document.write('<title>Credit Note</title>');   // <title> FOR PDF HEADER.
+                win.document.write(style);          // ADD STYLE INSIDE THE HEAD TAG.
+                win.document.write('</head>');
+                win.document.write('<body>');
+                win.document.write(sTable);         // THE TABLE CONTENTS INSIDE THE BODY TAG.
+                win.document.write('</body></html>');
+
+                //win.document.close(); 	// CLOSE THE CURRENT WINDOW.
+                //win.print();    // PRINT THE CONTENTS.
+            }
+
+        </script>
+
+    </body>
+</html>

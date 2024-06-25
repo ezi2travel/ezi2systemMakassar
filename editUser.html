@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Edit User</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+    </head>
+    <style>
+        body { background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; text-align:left;}
+    </style>
+    <body>
+        <label style="margin-left: 10%; font-weight: bold;">ACCOUNT ID : </label>
+        <p style="text-align: left; font-size: 25px; color: blue; margin-left: 10%; font-weight: bold;" id="userid" ></p><br/><br/>
+        <label style="margin-left: 10%; font-weight: bold;">EMAIL : </label>
+        <p style="text-align: left; font-size: 25px; color: blue; margin-left: 10%; font-weight: bold;" id="email"></p><br/><br/>
+        <label style="margin-left: 10%; font-weight: bold;">USER ID : </label>
+        <p style="text-align: left; font-size: 25px; color: blue; margin-left: 10%; font-weight: bold;" id="id"></p><br/><br/>
+        <br/>
+
+        <div style=" margin-left: 10%;">
+            <button style="background-color: red; color: white; font-weight: bold; padding: 10px 30px;" id="delete_item">DELETE</button>
+            <button onclick="window.history.go(-1)" style="background-color: rgba(33, 15, 97, 0.651); color: white; font-weight: bold; padding: 10px 30px;" id="delete_item">BACK</button>
+        </div>
+
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+            import { getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+            import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const analytics = getAnalytics(app);
+            const auth = getAuth();
+
+            function checkuser(){
+                const auth = getAuth();
+                onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const uid = user.uid;
+                } else {
+                    alert("Please Sign In! ");
+                    window.location.href= 'index.html';
+                }
+                });
+            }
+
+            window.addEventListener('load',checkuser);
+
+            const queryString = window.location.search;
+            var w = queryString.substring(7);
+            document.getElementById("userid").innerHTML = w;
+        
+            let update_item = document.getElementById("update_item");
+            let delete_item = document.getElementById("delete_item");
+
+            const dbref = ref(db);
+
+            get(child(dbref, 'user/' + w)).then((snapshot)=>{
+                email.innerHTML = snapshot.val().email;
+                id.innerHTML = snapshot.val().userid;
+                
+            })
+            .catch((error)=>{
+                alert("unsucessful");
+                console.log(error);
+            })
+
+
+            function deleteItem(){
+                
+                const auth = getAuth();
+                const user = auth.currentUser;
+                alert(user.uid);
+
+                remove(ref(db,'user/' + w  ))
+                .then(()=>{
+                    alert("User " + w +" remove successfully !");
+                    window.location.href= 'manageUser.html';
+                })
+                .catch((error)=>{
+                    alert("unsucessful");
+                })
+
+                deleteUser(w).then(() => {
+                    window.location.href= 'manageUser.html';
+                    // User deleted.
+                }).catch((error) => {
+                // An error ocurred
+                // ...
+                });             
+
+            }
+
+            delete_item.addEventListener('click',deleteItem);
+
+        </script>
+    </body>
+</html>

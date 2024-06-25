@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sales & Invoice</title>
+    <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+      button {
+        background-color: DodgerBlue;
+        border: none;
+        color: white;
+        padding: 12px 16px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: rgb(65, 225, 78);
+        color : black;
+      }
+      body {font-family: "Lato", sans-serif; text-align: center; background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; margin: 5%;}
+        
+      * {
+        box-sizing: border-box;
+      }
+      #findnama {
+        background-image: url('/css/searchicon.png');
+        background-position: 10px 12px;
+        background-repeat: no-repeat;
+        width: 100%;
+        font-size: 16px;
+        padding: 12px 20px 12px 40px;
+        border: 1px solid #ddd;
+        margin-bottom: 12px;
+        
+      }
+      #myUL {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+        
+      #myUL li a {
+        border: 1px solid #ddd;
+        margin-top: -1px; /* Prevent double borders */
+        background-color: #f6f6f6;
+        padding: 12px;
+        text-decoration: none;
+        font-size: 18px;
+        color: black;
+        display: block;
+      }
+      #myUL li a:hover:not(.header) {
+        background-color: #eee;
+      }
+    </style>
+  </head>
+<body>
+  <h1 style="color:green">Credit Note for Customers</h1>
+  <div id="searchbox" style="display: flex;">
+    <input title="Serach Jemaah Name Here" style="border-radius: 10px;" id="findnama" onkeyup="myFunction()" type="text" placeholder="Enter Name" onkeyup="this.value = this.value.toUpperCase();"> 
+    <button title="Create New Credit Note" style="height: 45px; border-radius: 10px;" onclick="window.location.href='CreateCreditNote.html'" id="CreateCreditnote" type="CreateCreditnote"><i class="fa fa-plus" > </i></button>
+    <button title="Return to Homepage" style="height: 45px; border-radius: 10px; background-color: darkred;" onclick="window.location.href='homepage.html'" ><i class="fa fa-home" > </i></button>
+  </div>
+
+  <ul id="myUL"></ul>
+  <script>
+    function myFunction() {
+      var input, filter, ul, li, a, i, txtValue;
+      input = document.getElementById("findnama");
+      filter = input.value.toUpperCase();
+      ul = document.getElementById("myUL");
+      li = ul.getElementsByTagName("li");
+      for (i = 0; i < li.length; i++) {
+        a = li[i].getElementsByTagName("a")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          li[i].style.display = "";
+        } else {
+          li[i].style.display = "none";
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+  import {getDatabase, ref, set, push,child, onValue,remove,get,update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+  import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+  
+
+  // TODO: Add SDKs for Firebase products that you want to use
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+    authDomain: "databaseezimakassar.firebaseapp.com",
+    databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+    projectId: "databaseezimakassar",
+    storageBucket: "databaseezimakassar.appspot.com",
+    messagingSenderId: "52198587801",
+    appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+    measurementId: "G-S280NXJS9F"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const analytics = getAnalytics(app);
+
+  function checkuser(){
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
+      } else {
+        alert("Please Sign In! ");
+        window.location.href= 'index.html';
+      }
+    });
+  }
+
+  window.addEventListener('load',checkuser);
+
+function GetPackage(){
+	const dbref = ref(database);
+	get(child(dbref,'Payment')).then((snapshot)=>{
+    snapshot.forEach(std => {
+		PackageListItem(std);
+	}); 
+    });
+}
+
+function PackageListItem(std){
+	let key = std.key;
+	let value = std.val();
+	let date = document.createElement('li');
+  
+	date.innerHTML = '<a title="click to view credit note for '+key+'" href="CreateCreditNote.html?index='+key+'"style="text-align:left; ">'+ key;
+    // +`<div id = index >Amount : RM `+value.amount+`</div>`; 
+    // + `<div id = index style="background-color:`+color+`;text-align:center;padding:5px 10px;border-radius:10px; outline: 1px solid black;margin-left:80%">`+value.payment_status+`</div>`;
+	  myUL.append(date);
+  } 
+
+window.addEventListener('load',GetPackage); 
+
+
+</script>

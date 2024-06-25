@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>Payment</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+    </head>
+    <style>
+        body { background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; text-align:left;}
+
+        label{
+            display:inline-block;
+            width: 30%;
+            font-size: 25px;
+            font-weight: bold;
+            margin-left: 5%;
+        }
+        p{
+            display:inline-block;
+            font-size: 25px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        input{
+            font-size: 25px;
+        }
+        h1{
+            color:rgb(0, 60, 255); 
+            text-align: center; 
+            font-size: 45px; 
+            font-weight: bold; 
+            font-style: italic;
+        }
+        
+        
+    </style>
+    <body>
+        <h1>MAKE A PAYMENT</h1>
+        <div>
+            <div >
+                <label>NAME : </label>
+                <p id="index"></p>
+            </div>
+            <div>
+                <label>PAYMENT NO : </label>
+                <p id="payment_no" type="number"></p>
+                <p id="no" type="number" style="display: none;"></p>
+            </div>
+            <div>
+                <label>RECEIPT NO : </label>
+                <p id="receipt_no" type="number"></p>
+                <p id="no_receipt" type="number" style="display: none;"></p>
+            </div>
+            <div>
+                <label>DATE OF PAYMENT : </label>
+                <p id="date_payment" type="date"></p>
+            </div>
+            <div >
+                <label>BY :</label>            
+                <input type="text" disabled id="userid1"/><br/><br/>
+            </div>
+            <div>
+                <label>BALANCE TO PAY : </label>
+                <p type="number" id="balance"></p>
+            </div>
+        </div>
+    
+        <div>
+            <label>AMOUNT : </label>
+            <input style="border-radius: 5px" type="text" id="amount" >
+        </div><br><br>
+
+        <div>
+            <label>REFERENCE : </label>
+            <input style="border-radius: 5px" type="text" id="reference">
+        </div>
+        <div style="text-align: center;">
+            <p id="receipt" style="display: none;"></p><br /><br/>
+            <input title="Choose File to Upload" style=" color: white ; border-radius:10px" type="file" id="photo" accept="image/jpeg, image/png, application/pdf" /><br/><br /><br/>
+
+            <div>
+                <button title="Submit Payment" style="background-color: green ; color: white; padding: 10px 25px; border-radius: 10px" id="sumbit_payment">SUBMIT <i class="fa fa-send-o"></i> </button>
+                <button title="Upload File" style="background-color: rgb(0, 13, 128) ; color: white; padding: 10px 25px; border-radius: 10px" id="upload">UPLOAD FILE <i class="fa fa-upload"></i></button>
+                <button title="Return to Summary" onclick="pay()" style="background-color: rgb(0, 166, 255) ; color: black; padding: 10px 25px; border-radius: 10px" ><i class="fa fa-arrow-left"> BACK</i></button></br></br>            
+            </div> 
+            <br /><br/>
+
+        </div>
+
+        <div style="text-align: center;">
+            <iframe src="" id="file-preview" style=" border-radius: 10px; text-align: center; height: 500px; width: 30%;"></iframe>
+        </div>
+
+        
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>
+        <script>
+            function pay(){
+                let y = document.getElementById("index").innerHTML;
+                window.history.go(-1);
+            }
+        </script>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+            import {getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+            import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+            const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+
+            
+            const input = document.getElementById("photo");
+            const previewPhoto = () => {
+                const file = input.files;
+                    if (file) {
+                        const fileReader = new FileReader();
+                        const preview = document.getElementById('file-preview');
+                        fileReader.onload = event => {
+                            preview.setAttribute('src', event.target.result);
+                        }
+                        fileReader.readAsDataURL(file[0]);
+                    }
+                }
+            input.addEventListener('change', previewPhoto);
+            let upload = document.getElementById('upload');
+
+            function uploadImage() {
+                firebase.initializeApp(firebaseConfig);
+                const ref = firebase.storage().ref();
+                const file = document.getElementById("photo").files[0];
+                if (input.value == '' || input.value == null){
+                    alert("Please choose the receipt !");
+                    return;
+                }
+                const name = "RECEIPT_" + no.innerHTML + "_"+ index.innerHTML;
+                const metadata = {
+                    contentType: file.type
+                };
+                const task = ref.child(name).put(file, metadata);task
+                .then(snapshot => snapshot.ref.getDownloadURL())
+                .then(url => {
+                    document.getElementById('receipt').innerHTML= url;
+                    alert('Receipt uploaded !');
+                    document.querySelector("#image").src = url;
+                }).catch(console.error);
+                
+                //submit();
+            }
+            const errorMsgElement = document.querySelector('span#errorMsg');
+          
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const analytics = getAnalytics(app);
+
+            function checkuser(){
+                const auth = getAuth();
+                onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        userid1.value = snapshot.val().userid;
+                    }
+                    })
+                } 
+                else {
+                    alert("Please Sign In! ");
+                    window.location.href= 'index.html';
+                }
+                });
+            }
+
+
+            window.addEventListener('load',checkuser);
+
+            const queryString = window.location.search;
+            var x = queryString.substring(7);
+            let y = x.split("%20").join(" ").toUpperCase();
+            document.getElementById("index").innerHTML = y;
+            let sumbit_payment = document.getElementById("sumbit_payment");
+
+            const dbref = ref(db);
+
+            function retData(){
+                get(child(dbref, 'Payment/'+y )).then((snapshot)=>{
+                    payment_no.innerHTML = (Number(snapshot.val().payment_no)+1);
+                    no.innerHTML = (Number(snapshot.val().payment_no)+1);
+                    let x  = Number(snapshot.val().baki);
+
+                    var money = x.toString();
+                    var index = money.indexOf("."); 
+                    if(index >=0){
+                        var id = money.slice(0, index); 
+                        var text = money.slice(index + 1);  // Gets the text part
+                        id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        id = id.replaceAll(",",".");
+                        money = id +","+ text;  
+                    }
+                    else{
+                        money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        money = money.replaceAll(",",".");
+                        money = money+",00";
+                    }
+                        balance.innerHTML = "Rp. " + money;
+
+                })
+
+                
+
+                get(child(dbref, 'number')).then((snapshot)=>{
+                    let a = (Number(snapshot.val().receipt_no)+1);
+                    let b = a.toString().padStart(9, '0');
+                    receipt_no.innerHTML = "#RCP" + b;
+                })
+            }
+            function getDate(){
+                const result1 = new Date().toLocaleDateString('en-GB');
+                document.getElementById("date_payment").innerHTML = result1;
+            }
+
+            let amount = document.getElementById("amount");
+            function autoNumber(){
+                
+                var money = (amount.value).toString();
+                    var index = money.indexOf("."); 
+                    if(index >=0){
+                        var id = money.slice(0, index); 
+                        var text = money.slice(index + 1);  // Gets the text part
+                        id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        id = id.replaceAll(",",".");
+                        money = id +","+ text;  
+                    }
+                    else{
+                        money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        money = money.replaceAll(",",".");
+                        money = money+",00";
+                    }
+                amount.value=money;
+            }
+            //amount.addEventListener('change',autoNumber);
+
+
+            function submit(){   
+                let b = document.getElementById("amount");  
+                let c = document.getElementById("reference");
+                let d = document.getElementById("date_payment").innerHTML;
+                let e = document.getElementById("receipt").innerHTML; 
+                
+
+                if(b.value == "" || b.value ==null ||c.value == "" || c.value==null){
+                    alert("Please insert the amount and reference!");
+                    return;
+                }
+                if(input.value ==""||input.value == null){
+                    alert("Please insert proof of payment!");
+                    return;
+                }
+                if(e == '' || e==null){
+                    alert("Please click upload button first!");
+                    return;
+                }         
+                get(child(dbref, 'Payment/'+y )).then((snapshot)=>{
+                    let a = Number(snapshot.val().payment_no)+1;
+                    set(ref(db,'Payment/' + y + "/payment/" + a), {
+                    amount : b.value,
+                    reference : c.value,
+                    date : d,
+                    receipt : e,
+                    user : userid1.value
+                    
+                    }).then(()=>{
+                        alert("Payment Added !");
+                        update(ref(db,'Payment/' + y), {
+                           payment_no : a,
+                        })
+
+                        window.location.href= 'invoice.html?index=' + y;
+
+                    }).catch((error)=>{
+                        alert("unsucessful");
+                        console.log(error);
+                    })
+                })
+                get(child(dbref, 'number')).then((snapshot)=>{
+                    let a = (Number(snapshot.val().receipt_no)+1);
+                    update(ref(db,'Payment/' + y +"/payment/"+payment_no.innerHTML), {
+                        receipt_no : a,                
+                    })
+                    update(ref(db,'number'), {
+                        receipt_no : a,                
+                    })
+                })
+            }
+               
+            window.addEventListener('load',retData);
+            window.addEventListener('load',getDate);
+            upload.addEventListener('click',uploadImage);
+            sumbit_payment.addEventListener('click',submit);
+
+        </script>
+    </body>
+</html>

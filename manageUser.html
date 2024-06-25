@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MANAGE USER</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <style>
+            td {border: 1px solid black;background-color: white; }
+            th {border: 1px solid black; }
+            table {border: 1px solid black; }
+            body{
+                margin-top: 5%;
+                margin-left: 5px;
+                margin-right: 5px;
+                background-image: linear-gradient(aliceblue, rgb(142, 195, 242));
+                background-attachment: fixed; 
+            }
+        </style>
+    </head>
+    <body >
+        <div style="align-content: center;">
+            <table class="center" id="ListofUser" style="margin-right: 5%; width: 100%; align-items: center; text-align: center;">
+              <tr>
+                <th style="background-color:cyan">NO</th>
+                <th style="background-color:cyan">ID</th>
+                <th style="background-color:cyan">EMAIL</th>
+                <th style="background-color:cyan">ACTION</th>
+              </tr>
+            </table><br/><br/>
+        </div>
+        <p id="test"></p>
+
+        <div style="text-align: center;" id="Add-User-box" >
+            <h2 style="color: blue;font-size: 30px;font-weight: bold;font-style: italic ;">ADD NEW USER</h2>
+            <div>
+                <input type="text" id="email" name="email" placeholder="   E-mail" style="width:30%;font-size: 20px; height: 25px;"/><br><br>
+                <input type="password" id="password" name="password" placeholder="  Password" style="width:30% ;font-size: 20px;height: 25px;"/><br><br>
+                <input type="text" id="id" name="id" placeholder="   ID" style="width:30%;font-size: 20px; height: 25px;"/><br><br>
+                <input type="submit" id="create" name="create" value="CREATE" style="color:white; background-color: blue; padding: 10px 30px;font-size: 20px; font-weight: bold; font-style: italic; border-radius: 10px;"/>
+                <button title="Return to Homepage" onclick="window.location.href='homepage.html'" style="color:white; background-color: rgb(14, 140, 251); padding: 10px 30px;font-size: 20px; font-weight: bold; font-style: italic; border-radius: 10px;"><i class="fa fa-home" > </i> HOME</button>
+            </div>
+        </div>
+        <script>
+            function deleteUser(x){
+            test.innerHTML = x;
+            window.location.href= 'editUser.html?index='+x;
+        }
+        </script>
+
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>
+        <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+        import {getDatabase, get, ref, set, push,child, onValue,remove,update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+        import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+            authDomain: "databaseezimakassar.firebaseapp.com",
+            databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+            projectId: "databaseezimakassar",
+            storageBucket: "databaseezimakassar.appspot.com",
+            messagingSenderId: "52198587801",
+            appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+            measurementId: "G-S280NXJS9F"
+        };
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+        const dbref = ref(database);
+
+        function checkuser(){
+            const auth = getAuth();
+            onAuthStateChanged(auth, (user) => {
+            if (user) {
+                get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+                if(snapshot.exists()){
+                    if(snapshot.val().userid != "ezi2m1"){
+                        alert("Please Sign In with admin account! ");
+                        window.location.href= 'index.html';
+                    }
+                }
+                })
+            }
+            else {
+                alert("Please Sign In! ");
+                window.location.href= 'index.html';
+            }  
+            });
+        }
+
+  window.addEventListener('load',checkuser);
+
+        window.addEventListener('load', GetListUser);
+
+        create.addEventListener('click',(e) => {
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+        var id = document.getElementById('id').value;
+        if(email == "" || email == null ||password == "" || password == null ||id == "" || id == null ){
+            alert("Please fill all the information")
+            return;
+        }
+
+        createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+        const user = userCredential.user;
+        alert(user.uid);
+
+        set(ref(database,'user/' + user.uid), {
+         email : email,
+         userid : id
+        })
+
+        get(child(dbref, 'number')).then((snapshot)=>{
+            let a = (Number(snapshot.val().user)+1);
+            update(ref(database,'number'), {
+                user : a,                
+            })
+        })
+
+        window.alert("Success! Account Created !");
+        window.location.replace("./homepage.html");
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            window.alert("Error occurred. Try again.");
+        });               
+    });
+
+        let no = 1;
+
+        function GetListUser(){
+            $('#ListofUser').find("tr:not(:first)").remove();
+            const dbref = ref(database);
+            get(child(dbref,'user')).then((snapshot)=>{
+                snapshot.forEach(std => {
+                    ListUser(std);
+                    no ++;
+                });
+            });
+        }
+
+        function ListUser(std){
+            let key = std.key;
+            let value = std.val();
+            let date = document.createElement('tr');
+            if(value.userid == "ezi2m1"){
+                date.innerHTML = '<td>'+ no +"</td><td>"+ value.userid +"</td><td>"+ value.email +"</td>"+
+            `<td>ADMIN</td>`;
+            }
+            else{
+                date.innerHTML = '<td>'+ no +"</td><td>"+ value.userid +"</td><td>"+ value.email +"</td>"+
+            `<td><button title="Edit" id="delete_user" onclick="deleteUser('`+key+`')"><i class="fa fa-pencil" style="color:red"></i></button></td>`;
+            }
+            
+            ListofUser.append(date);
+        }
+        </script>
+    </body>
+</html>

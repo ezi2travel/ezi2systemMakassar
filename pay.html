@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>SUMMARY INVOICE</title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+        <style>
+            td {border: 1px solid black; }
+            th {border: 1px solid black; }
+            table {border: 1px solid black; }
+            body { background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; text-align:left;}
+
+        </style>
+    </head>
+    <body>
+        <div id="invoice" class="invoice" >
+            <div id="company_info" style="margin: 5px; display: flex; ">
+                <img src="./logo.jpg" style="border:4px solid rgb(255, 198, 43); width:100px; height:100px; margin-top: 30px;transform: rotate(45deg);margin-left: 1%;">
+                <div id="company_address" style="margin-left: 30px; margin-top: 20px;" >
+                    <p style="line-height: 0.5; font-weight: bold;">PT. EZI2 TRAVEL MKS (759360-P)</p>
+                    <p style="line-height: 0.5; ">JL. AP PETTARANI,</p>
+                    <p style="line-height: 0.5;">KOMPLEKS NEW RUKO ZAMRUD,</p>
+                    <p style="line-height: 0.5;">BLOK F NO. 10,</p>
+                    <p style="line-height: 0.5;">MAKASSAR, SELAWESI SELATAN</p>
+                    <p style="line-height: 0.5;">PHONE : +62 823-2428-6457 / </p>
+                    <p style="line-height: 0.5;">+62 853-9916-8057 </p>
+                    <p style="line-height: 0.5;">Email : ezi2travel.makassar@gmail.com /</p>
+                </div>
+                <div id="invoice_title" style="margin-left: 100px;" >
+                    <div>
+                        <h1>INVOICE</h1>
+                        <p id="invoice_no">invoice number : </p>
+                        <p id="now_date"></p>
+                        <p id="userid2"></p>
+                    </div>
+                    <div id="paymentDiv" style="width:100px; height: 120px ; border: 1px solid black;">
+                        <p style="text-align: center;">PAYMENT STATUS</p>
+                        <h4 style="text-align: center;" id="status_payment"></h4>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex;">
+                <div id="customer" >
+                    <h3 >CUSTOMER : </h3>
+                    <h4 id="index" ></h4>
+                    <h4 id="address"></h4>
+                    <h4 id="no_telefon" ></h4>
+                    <p id="text_summary"></p>
+                </div>
+            </div>
+            
+            <div id="table_product">
+                <table id="product" style="width: 100%; height: 30px; margin-left:auto;margin-right:auto; text-align:center ; ">
+                    <tr>
+                        <th style="background-color:rgb(0, 255, 55)">NO</th>
+                        <th style="background-color:rgb(0, 255, 55)">DESCRIPTION</th>
+                        <th style="background-color:rgb(0, 255, 55)">QUANTITY</th>
+                        <th style="background-color:rgb(0, 255, 55)">UNIT PRICE</th>
+                        <th style="background-color:rgb(0, 255, 55)">AMOUNT</th>
+                    </tr>
+                </table>
+            </div>
+            <div style="text-align: right; margin-right: 20px;" id="total_count" >
+                <p id="total" ></p>
+                <p id="total_payment" ></p>
+                <p id="creditnote"></p>
+                <p id="discount"></p>
+                <p id="baki" ></p>
+            </div>
+            
+            
+        </div>
+            <div id="test_discount" style="display: none; text-align: right; margin-right: 20px;">
+                <label>AMOUNT</label>
+                <input type="number" id="amount_discount"><br/><br/>
+                <label>REMARKS</label>
+                <textarea type="text" id="remark_discount"></textarea> 
+            </div>
+
+            <div style="display:flexbox; ">
+                <button title="Make a payment" id="add_payment" >ADD PAYMENT</button>
+                <button title="Manage Products" id="add_products"onclick="pay()">ADD / EDIT PRODUCT</button>
+                <button title="Return to Invoice Page" onclick="window.location.href='search_invoice.html'" ><i class="fa fa-arrow-left" style="color:blue"></i> Back</button>
+                <button title="Return to Homepage" onclick="window.location.href='homepage.html'"  ><i class="fa fa-home" style="color:blue"></i> Home</button>
+                <button title="Print Invoice Summary" id="print" ><i style=" color:blue;" class="fa fa-print" ></i> PRINT</button>
+            </div> 
+            
+            <div style="text-align: right; margin-right: 20px;">
+                <button title="Add Discount to this Invoice" id="add_Discount" onclick="myFunction()"><i style=" color:blue;" class="fa fa-plus" ></i> DISCOUNT</button>
+                <button title="Save The Discount" id="save"><i style=" color:blue;" class="fa fa-save" ></i> SAVE</button>
+            </div>
+            
+            <div id="footer" style="display: inline-block; text-align: left;">
+                <p id="output2" ></p>
+            </div>
+
+            <script>
+                function myFunction() {
+                  var x = document.getElementById("test_discount");
+                  if (x.style.display === "none") {
+                    x.style.display = "block";
+                  } else {
+                    x.style.display = "none";
+                  }
+                }
+            </script>
+               
+        
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+            import {getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+            import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+                authDomain: "databaseezimakassar.firebaseapp.com",
+                databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+                projectId: "databaseezimakassar",
+                storageBucket: "databaseezimakassar.appspot.com",
+                messagingSenderId: "52198587801",
+                appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+                measurementId: "G-S280NXJS9F"
+            };
+          
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const analytics = getAnalytics(app);
+
+            const queryString = window.location.search;
+            var x = queryString.substring(7);
+            let y = x.split("%20").join(" ").toUpperCase();
+            document.getElementById("index").innerHTML = y;
+
+            function checkuser(){
+                const auth = getAuth();
+                onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        userid2.innerHTML = "By : " + snapshot.val().userid;
+                    }
+                    })
+                } 
+                else {
+                    alert("Please Sign In! ");
+                    window.location.href= 'index.html';
+                }
+                });
+            }
+
+            function onProcess2(){
+                const dbref = ref(db);
+                get(child(dbref, 'draft')).then((snapshot)=>{
+                var input = snapshot.val().invoice;
+                var output2 = "";
+                output2 = input.replaceAll('\\n', '<br>');
+                document.getElementById("output2").innerHTML = output2;
+            })
+                if (!input){
+                alert("Invalid input");
+                return;
+                }
+                var output = "";
+            }
+
+            window.addEventListener('load',checkuser);
+            window.addEventListener('load',onProcess2);
+
+            var print = document.getElementById("print");
+            print.addEventListener('click',createPDF);
+            save.addEventListener('click',SaveDiscount);
+
+            function SaveDiscount(){
+                if(amount_discount.value == '' || amount_discount.value == null || remark_discount.value == '' || remark_discount.value == null){
+                    alert("Please enter value");
+                }
+                else{
+                    var x = document.getElementById("remark_discount").value;
+                    var output = "";
+                    output = x.replace(/(?:\r\n|\r|\n)/g, '\\n');
+
+                    set(ref(db,'Payment/' + y + "/discount"), {
+                        amount : amount_discount.value,
+                        remarks : output
+                    })
+
+                    alert("Discount updated");
+                    window.location.href= 'invoice.html?index='+y;
+                }   
+            }
+          
+            function createPDF(){
+                var inv_no = invoice_no.innerHTML;
+                var x = inv_no.indexOf("#");
+                var inv_no = inv_no.slice(x);
+                var name = document.getElementById("index").innerHTML
+                inv_no = inv_no +'_'+ name;
+                var sTable = document.getElementById('invoice').innerHTML;
+                var footer = document.getElementById('footer').innerHTML
+                var style = "<style>";
+                style = style + "table {border: 1px solid black; }";
+                style = style + " th {border: 1px solid black; }";
+                style = style + " td {border: 1px solid black; }";
+                style = style + " .status_payment {color:green; }";
+                style = style + "</style>";           
+            
+
+                // CREATE A WINDOW OBJECT.
+                var win = window.open('', '', 'height=800,width=800');
+
+                win.document.write('<html><head>');
+                win.document.write('<title>'+inv_no+'</title>');   // <title> FOR PDF HEADER.
+                win.document.write(style);          // ADD STYLE INSIDE THE HEAD TAG.
+                win.document.write('</head>');
+                win.document.write('<body>');
+                win.document.write(sTable); 
+                win.document.write(footer);        // THE TABLE CONTENTS INSIDE THE BODY TAG.
+                win.document.write('</body></html>');
+
+                win.document.close(); 	// CLOSE THE CURRENT WINDOW.
+                win.print();    // PRINT THE CONTENTS.
+            }
+
+            let add_payment = document.getElementById("add_payment");
+            let add_products = document.getElementById("add_products");           
+            
+            const dbref = ref(db);
+            get(child(dbref, 'Payment/' + y)).then((snapshot)=>{
+                if(snapshot.exists()){
+
+                    var input = snapshot.val().alamat;
+                    var input1 = snapshot.val().details;
+                    var output = "";
+                    var output1 = "";
+                    output = input.replaceAll('\\n', '<br>');
+                    output1 = input1.replaceAll('\\n', '<br>');
+
+                    var money = (snapshot.val().total_payment).toString();
+                    var index = money.indexOf("."); 
+                        if(index >=0){
+                        var id = money.slice(0, index); 
+                        var text = money.slice(index + 1);  // Gets the text part
+                        id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        id = id.replaceAll(",",".");
+                        money = id +","+ text;  
+                    }
+                    else{
+                        money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                        money = money.replaceAll(",",".");
+                        money = money+",00";
+                    }
+
+                    total_payment.innerHTML = "TOTAL PAYMENT : Rp. "+ money;
+                    //baki.innerHTML = "BALANCE : RM " + snapshot.val().baki;
+                    let color = "red";
+                    let a = Number(snapshot.val().invoice_no) ;
+                    let b = a.toString().padStart(9, '0');
+                    invoice_no.innerHTML = "Invoice No : #S" + b; 
+                    address.innerHTML = output ;
+                    no_telefon.innerHTML = snapshot.val().no_telefon;
+                    text_summary.innerHTML = output1 ;
+                    if(snapshot.val().baki == 0 && snapshot.val().total != 0){
+                        color = "green";
+                        status_payment.innerHTML = `<div style="color:`+color+`;font-weight:bold">FULLY PAID</div>`;
+                    }
+                    else if(snapshot.val().total_payment == 0 ){
+                        color = "red"
+                        status_payment.innerHTML = `<div style="color:`+color+`;font-weight:bold">UNPAID</div>`;
+                    }
+                    else if(snapshot.val().baki <  snapshot.val().total && snapshot.val().baki > 0){
+                        color = "yellow";
+                        status_payment.innerHTML = `<div style="color:`+color+`;font-weight:bold">PARTIALLY PAID</div>`;
+                    }
+                    else if(snapshot.val().baki < 0){
+                        color = "blue";
+                        status_payment.innerHTML = `<div style="color:`+color+`;font-weight:bold">OVER PAID</div>`;
+                    }
+                    else {
+                        color = "red"
+                        status_payment.innerHTML = `<div style="color:`+color+`;font-weight:bold">UNPAID</div>`;
+                        // baki.innerHTML = "BALANCE : RM 0.00";
+                    }
+                    
+                }
+                else{
+                    alert("Employee does not exist");
+                    return;
+                }
+            })
+            .catch((error)=>{
+                alert("unsucessful");
+                console.log(error);
+            })
+
+            let no=1;
+            let final_total = 0;
+
+            function GetProduct(){
+                const dbref = ref(db);
+                get(child(dbref,'Payment/'+y+"/product")).then((snapshot)=>{
+                    snapshot.forEach(std => {
+                        ProductListItem(std);
+                        no ++;
+                    }); 
+                });
+                //getCreditNote();
+            }
+            function ProductListItem(std){
+                let key = std.key;
+                let value = std.val();
+                let date = document.createElement('tr');
+                let a = (Number(value.quantity))*(Number(value.unit_price));
+                a = a.toFixed(2);
+
+                var money = (value.unit_price).toString();
+                var index2 = money.indexOf("."); 
+                if(index2 >=0){
+                    var id = money.slice(0, index2); 
+                    var text = money.slice(index2 + 1);  // Gets the text part
+                    id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    id = id.replaceAll(",",".");
+                    money = id +","+ text;  
+                }
+                else{
+                    money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    money = money.replaceAll(",",".");
+                    money = money+",00";
+                }
+
+                var money1 = a.toString();
+                var index1 = money1.indexOf("."); 
+                if(index1 >=0){
+                    var id1 = money1.slice(0, index1); 
+                    var text1 = money1.slice(index1 + 1);  // Gets the text part
+                    id1 = id1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    id1 = id1.replaceAll(",",".");
+                    money1 = id1 +","+ text1;  
+                }
+                else{
+                    money1 = money1.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    money1 = money1.replaceAll(",",".");
+                    money1 = money1+",00";
+                }
+
+                var input = value.description;
+                var output = "";
+                output = input.replaceAll('\\n', '<br>');
+
+                if(value.image =="" || value.image == null || value.image == "HELLO" ){
+                    date.innerHTML = "<td>"+ no +'</td><td style="text-align:left"><div style="text-align:left;justify-content:left"><div><p style="font-weight:bold">'+ value.name+"</p>"+ output +"</div></td><td>"+ value.quantity +
+                                "</td><td>Rp. "+ money +"</td><td>Rp. "+ money1 +"</td>";
+                }
+                else{
+                    date.innerHTML = "<td>"+ no +'</td><td style="text-align:left"><div style="text-align:left;justify-content:left"><div style="display:flex; align-items: center;justify-content: center"><img style="width:100px;height:100px;margin-right:5%; margin-left:5%" src="'+value.image+'"><div><p style="font-weight:bold">'+ value.name+"</p>"+ output +"</div></div></div></td><td>"+ value.quantity +
+                                "</td><td>Rp. "+ money +"</td><td>Rp. "+ money1 +"</td>";
+                }
+
+                final_total = final_total + a;
+
+                let b = Number(final_total).toFixed(2);
+
+                var money = (b).toString();
+                var index = money.indexOf("."); 
+                if(index >=0){
+                    var id = money.slice(0, index); 
+                    var text = money.slice(index + 1);  // Gets the text part
+                    id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    id = id.replaceAll(",",".");
+                    money = id +","+ text;  
+                }
+                else{
+                    money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                    money = money.replaceAll(",",".");
+                    money = money+",00";
+                }
+
+
+                total.innerHTML = "TOTAL PRICE : Rp. " + money;
+                update(ref(db,'Payment/' + y),{
+                    total : b})
+                product.append(date);
+
+                let cn = 0;
+    
+                get(child(dbref, 'CreditNote/' + y)).then((snapshot)=>{
+                    cn = snapshot.val().total_creditnote;
+                })
+
+                let x_discount = 0;
+
+                get(child(dbref, 'Payment/' + y +"/discount")).then((snapshot)=>{
+                    x_discount = snapshot.val().amount;
+                })
+
+                get(child(dbref, 'Payment/' + y)).then((snapshot)=>{
+                    userid2.innerHTML = "By : "+snapshot.val().user;
+                let N_baki = Number(snapshot.val().total)  - Number(snapshot.val().total_payment) + Number(cn) - Number(x_discount);
+                    update(ref(db,'Payment/' + y), {
+                        baki : N_baki.toFixed(2),
+                    });
+                baki.innerHTML = "BALANCE : Rp. " + N_baki;
+                //discount.innerHTML = N_baki; ///edit balik;
+                })
+                
+            } 
+
+            function getDate(){
+                // const result1 = new Date().toLocaleDateString('en-GB');
+                // document.getElementById("now_date").innerHTML = "Date : "+ result1;
+                get(child(dbref, 'Payment/' + y +'/payment/0')).then((snapshot)=>{
+                    document.getElementById("now_date").innerHTML = "Date : "+ snapshot.val().date;                       
+                })
+            }
+            function pay(){
+                if (y == 0 || y ==null){
+                    alert("please register the jemaah !");
+                    window.location.href = "invoice.html";
+                }
+                else{
+                    window.location.href = "products.html?index="+y;
+                }  
+            }
+            function payment(){
+                if (y == 0 || y ==null){
+                    alert("please register the jemaah !");
+                    window.location.href = "invoice.html";
+                }
+                else{
+                    window.location.href = "payment.html?index="+y;
+                }
+            }
+
+            function getCreditNote(){
+                const dbref = ref(db);
+                let x_discount = 0;
+                let x_remarks = "";
+                get(child(dbref, 'Payment/' + y +'/discount')).then((snapshot)=>{
+                    x_discount = snapshot.val().amount;
+
+                    var input = snapshot.val().remarks;
+                    var output = "";
+                    output = input.replaceAll('\\n', '<br>');
+
+                    x_remarks = output;
+                    amount_discount.value = snapshot.val().amount;
+                    var output2 = input.replaceAll('\\n', '\n');
+                    
+                    remark_discount.value = output2;
+                       
+                })
+
+                get(child(dbref, 'CreditNote/' + y)).then((snapshot)=>{
+                    if(snapshot.exists()){
+                        let x = Number(snapshot.val().total_creditnote);
+                        get(child(dbref, 'Payment/' + y)).then((snapshot)=>{
+
+                            var money = x.toString();
+                            var index = money.indexOf("."); 
+                                if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+
+                            creditnote.innerHTML = "CREDIT NOTE : Rp. "+ money;
+
+                            var money = (Number(snapshot.val().baki).toFixed(2)).toString();
+                            var index = money.indexOf("."); 
+                                if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+                            //discount.innerHTML = "DISCOUNT : (- RM " + x_discount + ")";
+                            baki.innerHTML ="FINAL BALANCE : Rp. " + money;
+                            let n_baki = snapshot.val().payment_status;
+                            update(ref(db,'CreditNote/' + y), {
+                            baki : snapshot.val().baki,
+                            })
+                            if(n_baki == "FULLY PAID" ){
+                                status_payment.innerHTML = `<div style="color:green;font-weight:bold">FULLY PAID</div>`;
+                            }
+                            else if(n_baki == "PARTIALLY PAID" ){
+                                status_payment.innerHTML = `<div style="color:yellow;font-weight:bold">PARTIALLY PAID</div>`;
+                            }
+                            else if (n_baki == "OVER PAID" ) {
+                                status_payment.innerHTML = `<div style="color:blue;font-weight:bold">OVER PAID</div>`;
+                            }
+                            else if (n_baki == "UNPAID" ) {
+                                status_payment.innerHTML = `<div style="color:red;font-weight:bold">UNPAID</div>`;
+                            }
+
+                        });
+                    }
+                    else{
+                        get(child(dbref, 'Payment/' + y)).then((snapshot)=>{
+                            
+                            var money = (snapshot.val().baki).toString();
+                            var index = money.indexOf("."); 
+                                if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+                            //discount.innerHTML = "DISCOUNT : (- RM " + x_discount + ")";
+                            baki.innerHTML ="FINAL BALANCE : Rp. " + money;
+
+                            // baki.innerHTML ="FINAL BALANCE : Rp. " + Number(snapshot.val().baki).toFixed(2);
+                            // discount.innerHTML = "DISCOUNT : (- RM " + x_discount+ ")";
+                            let n_baki = (Number(snapshot.val().baki) - Number(x_discount));
+                            
+                            if(n_baki == 0 ){
+                                status_payment.innerHTML = `<div style="color:green;font-weight:bold">FULLY PAID</div>`;
+                            }
+                            else if(n_baki > 0 ){
+                                status_payment.innerHTML = `<div style="color:yellow;font-weight:bold">PARTIALLY PAID</div>`;
+                            }
+                            else if (n_baki < 0 ) {
+                                status_payment.innerHTML = `<div style="color:blue;font-weight:bold">OVER PAID</div>`;
+                            }
+
+                        });
+                        discount.innerHTML = "";
+                        creditnote.innerHTML ="";
+                    }
+
+                    if(x_discount != 0){
+                        let date = document.createElement('tr');
+
+                        var money = (x_discount).toString();
+                        var index = money.indexOf("."); 
+                            if(index >=0){
+                                var id = money.slice(0, index); 
+                                var text = money.slice(index + 1);  // Gets the text part
+                                id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                id = id.replaceAll(",",".");
+                                money = id +","+ text;  
+                            }
+                            else{
+                                money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+                                money = money.replaceAll(",",".");
+                                money = money+",00";
+                            }
+                        date.innerHTML = "<td></td><td>NOTES : <br>"+x_remarks+"</td><td></td><td></td><td>Rp. -"+ money +"</td>";
+                        product.append(date);
+                        discount.innerHTML = "DISCOUNT : (- Rp. " + money + ")";
+                    }
+                    
+                })
+                
+
+
+            }
+
+            
+            add_products.addEventListener('click',pay);
+            add_payment.addEventListener('click',payment);
+            window.addEventListener('load',GetProduct); 
+            window.addEventListener('load',getDate);
+            window.addEventListener('load',getCreditNote);
+
+
+        </script>
+    </body>
+</html>

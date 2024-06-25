@@ -1,0 +1,504 @@
+<html>
+    <head>
+        <title>Add New Products and Packages </title>
+        <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+    <style>
+        td {border: 1px solid black; }
+        th {border: 1px solid black; }
+        table {border: 1px solid black; }
+        body { background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed; text-align:left;}
+        input { margin-left: 5%; }
+        label{
+            display:inline-block;
+            font-size: 16px;
+            font-family: Arial, Helvetica, sans-serif;
+            width: 190px; 
+        }
+        h3{
+          background-color: greenyellow;
+          color: black;
+          margin-right:10% ;
+        }
+        li{
+          color: white;
+        }
+        canvas {
+          height: 175px;
+          border-style: solid;
+          border-width: 1px;
+          border-color: black;
+        }
+        
+    </style>
+    <body>
+        <h1 style="color:blue; text-align: center; font-size: 45px; font-weight: bold; font-style: italic;"> PRODUCTS & PACKAGES HERE</h1>
+        <label style="margin-left: 5%; font-size: 20px; font-weight: bold;">NAME PRODUCTS : </label>
+        <input style="border-radius: 5px; margin-left: 10%; font-size: 20px; width: 50%;" type="text" id="ProductName" name="ProductName" placeholder="Enter Product Name" /><br><br>
+        <label style="margin-left: 5%; font-size: 20px; font-weight: bold;">DESCRIPTION : </label>
+        <textarea style="border-radius: 5px; margin-left: 10%; font-size: 20px; width: 50%; height: 100px;" type="text" id="ProductDescription" name="ProductDescription" onkeyup="this.value = this.value.toUpperCase()"></textarea> <br><br>
+        <label style="margin-left: 5%; font-size: 20px; font-weight: bold;">PRICE : </label>
+        <input style="border-radius: 5px ;margin-left: 10%; font-size: 20px; width: 50%;" type="number" id="Price" name="Price" placeholder="Enter Product Price"/><br><br>
+        <label style="margin-left: 5%; font-size: 20px; font-weight: bold;">IMAGE : </label>
+        <input style="border-radius: 5px ;margin-left: 10%; font-size: 20px; width: 50%;" type="file" id="imageLoader" name="imageLoader"/><br/><br/>
+        <button  id="ClrImg" style="margin-left: 30%; font-size: 20px; font-weight: bold; color: red;"><i style="color: red;" class="fa fa-trash-o"></i> Remove Image</button><br/><br/>
+        <canvas style="border-radius: 5px ;margin-left: 30%;" id="imageCanvas"></canvas><br/><br/>
+        <p id="link"></p><br /><br/>
+
+        <div style="margin-left: 5%;">
+          <button title="Add New Product" id="AddBtn" style="background-color :green; color:white; padding: 10px 25px; font-size: 15px; font-weight: bold; border-radius: 10px;">Create</button>
+          <button title="Retrieve Product" id="RetBtn" style="background-color :Yellow; color:black; padding: 10px 25px; font-size: 15px; font-weight: bold; border-radius: 10px;">Retrieve</button>
+          <button title="Update Product" id="UpdBtn" style="background-color :lightcoral; color:black; padding: 10px 25px; font-size: 15px; font-weight: bold; border-radius: 10px;">Update</button>
+          <button title="Delete Product" id="DelBtn" style="background-color :Red; color:white; padding: 10px 25px; font-size: 15px; font-weight: bold; border-radius: 10px;">Delete</button>
+          <button title="Return to Homepage" id="btn" style="background-color :rgb(0, 128, 255); color:white; padding: 10px 25px; font-size: 15px; font-weight: bold; border-radius: 10px;" onclick="window.location.href='homepage.html'"><i class="fa fa-home" > </i> HOME</button>
+        </div>
+        <br/><br/>
+        <div style="align-content: center;width: auto; height:50%;overflow:auto; border: 0.5px solid black;">
+          <table class="center" id="ListofProduct" style="margin-right: 5%; width: 100%; align-items: center; text-align: center;">
+            <tr>
+              <th style="background-color:cyan">NO</th>
+              <th style="background-color:cyan">NAME</th>
+              <th style="background-color:cyan">DESCRIPTION</th>
+              <th style="background-color:cyan">PRODUCT IMAGE</th>
+              <th style="background-color:cyan">PRICE</th>
+            </tr>
+          </table><br/><br/>
+      </div>
+        <!-- <div style="width: 50%;margin: auto; border: 1px solid black; background-color:rgb(36, 125, 125);" id="ProductList" style="text-align:left"></div> -->
+        <p style="color: white;">EZI2TRAVEL SDN BHD</p>
+    </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+  import {getDatabase, get, ref, set, push,child, onValue,remove,update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+  import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+
+  // TODO: Add SDKs for Firebase products that you want to use
+  const firebaseConfig = {
+      apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+      authDomain: "databaseezimakassar.firebaseapp.com",
+      databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+      projectId: "databaseezimakassar",
+      storageBucket: "databaseezimakassar.appspot.com",
+      messagingSenderId: "52198587801",
+      appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+      measurementId: "G-S280NXJS9F"
+    };
+
+  var imageLoader = document.getElementById('imageLoader');
+  imageLoader.addEventListener('change', handleImage, false);
+  var canvas = document.getElementById('imageCanvas');
+  var ctx = canvas.getContext('2d');
+  var ClrImg = document.getElementById("ClrImg");
+
+  ClrImg.addEventListener('click',ClearCanvas);
+
+  function ClearCanvas(){
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+
+    if(ProductName.value == "" || ProductName.value == null){
+      return;
+    }
+    else{
+      update(ref(database,'Products/' + ProductName.value ), {
+      image : " ",                
+    })
+    }
+
+    
+  }
+
+  function handleImage(e){
+      var reader = new FileReader();
+      reader.onload = function(event){
+        var img = new Image();
+        img.onload = function(){
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img,0,0);
+        }
+        img.src = event.target.result;
+      }
+      reader.readAsDataURL(e.target.files[0]);  
+  }
+
+  function uploadFile(){
+    let a = document.getElementById("link").innerHTML;
+    //alert(a);
+
+    update(ref(database,'Products/' + ProductName.value ), {
+      image : a,                
+    })
+
+    location.reload();
+  }
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const analytics = getAnalytics(app);
+
+  function checkuser(){
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
+      } else {
+        alert("Please Sign In! ");
+        window.location.href= 'index.html';
+      }
+    });
+  }
+
+  window.addEventListener('load',checkuser);
+
+  let ProductName = document.getElementById('ProductName');
+  let ProductDescription = document.getElementById('ProductDescription');
+  let Price = document.getElementById('Price');
+
+  let AddBtn = document.getElementById('AddBtn');
+  let RetBtn = document.getElementById('RetBtn');
+  let UpdBtn = document.getElementById('UpdBtn');
+  let DelBtn = document.getElementById('DelBtn');
+
+  function Interface(e){
+    let BtnId = e.target.id;
+    const dbref = ref(database);
+
+    if(BtnId == "RetBtn"){
+      if(ProductName.value == "" || ProductName.value == null){
+        alert("Please fill name of the product !");
+        return;
+      }
+      else{
+        RetData();
+        return;
+      } 
+    }
+            
+
+    get(child(dbref, 'Products/' + ProductName.value)).then((snapshot)=>{
+      if(snapshot.exists()){
+        if(BtnId == "AddBtn"){
+          if(ProductName.value =="" || ProductName.value == null){
+            alert("Please fill name of the product !");
+            return;
+          }
+          else{
+            alert("Product already exist, duplicate package not allowed");
+            return; 
+          } 
+        }
+                    
+        else if(BtnId == "UpdBtn" ){
+          if(ProductName.value =="" || ProductName.value == null ||
+            Price.value =="" || Price.value == null )
+            {
+              alert("Please enter all details of product");
+            }
+          else{
+            UpdateData();
+            return; 
+          }
+                    
+        }
+                    
+        else if(BtnId == "DelBtn"){
+          if(ProductName.value =="" || ProductName.value == null )
+            {
+              alert("Please enter name of products");
+            }
+          else{
+            DeleteData();
+            return; 
+          } 
+        }     
+      }
+      else{
+        if(BtnId == "AddBtn"){
+          if(ProductName.value =="" || ProductName.value == null ||
+          Price.value =="" || Price.value == null )
+            {
+              alert("Please enter all details of products");
+            }
+          else{
+            AddData();
+            return; 
+          }
+        }
+                    
+        else if(BtnId == "UpdBtn"){
+          if(ProductName.value =="" || ProductName.value == null ||
+            Price.value =="" || Price.value == null )
+            {
+              alert("Please enter all details of product");
+            }
+          else{
+            alert("Cannot update, product does not exist");
+            return; 
+          }
+        }
+                
+        else if(BtnId == "DelBtn"){
+          if(ProductName.value =="" || ProductName.value == null )
+            {
+              alert("Please enter name of product");
+            }
+          else{
+            alert("Cannot delete, product does not exist");
+            return; 
+          } 
+        }
+      }
+    })
+
+    .catch((error)=>{
+      alert("unsucessful");
+      console.log(error);
+    })
+
+  }
+
+function AddData(){
+  var ProductDescription = document.getElementById("ProductDescription").value;
+  if (!ProductName.value ){
+    alert("Invalid input / receipt");
+    return;
+  }
+  else{
+    var output = "";
+    output = ProductDescription.replace(/(?:\r\n|\r|\n)/g, '\\n');
+    set(ref(database,'Products/' + ProductName.value), {
+      name : ProductName.value,
+      description : output,
+      price :Price.value,
+      image : "HELLO"
+    })   
+    .then(()=>{
+      if(imageLoader.value == '' || imageLoader.value == null){
+        alert("Product added without image");
+        location.reload();
+      }
+      firebase.initializeApp(firebaseConfig);
+      const ref = firebase.storage().ref();
+      const file = document.getElementById("imageLoader").files[0];
+      const name = "PRODUCT" + "_" + ProductName.value;
+      const metadata = {
+        contentType: file.type
+      };
+      const task = ref.child(name).put(file, metadata);task
+      .then(snapshot => snapshot.ref.getDownloadURL())
+      .then(url => {
+        document.getElementById('link').innerHTML= url;
+        //alert(url);
+        uploadFile();
+        
+      }).catch(console.error);
+
+    
+    alert("Image and Product Added Successfully !");
+
+    })
+    .catch((error)=>{
+      //alert("No Image");
+      console.log(error);
+      //location.reload();
+    }) 
+  }
+  
+}
+
+function RetData(){
+  const dbref = ref(database);
+  get(child(dbref, 'Products/' + ProductName.value)).then((snapshot)=>{
+    if(snapshot.exists()){
+      ProductName.value = snapshot.val().name;
+      Price.value = snapshot.val().price;
+
+      var input = snapshot.val().description;
+      var output = "";
+      output = input.replaceAll('\\n', '\n');
+
+      ProductDescription.value = output;
+
+      var myCanvas = document.getElementById("imageCanvas");
+      var ctx = myCanvas.getContext('2d');
+      var img = new Image;
+      img.onload = function(){
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img,0,0); // Or at whatever offset you like
+      };
+
+      img.src = snapshot.val().image;
+
+
+    }
+    else{
+      alert("Products does not exist");
+    }
+  })
+  .catch((error)=>{
+    alert("unsucessful");
+    console.log(error);
+  })
+}
+
+function UpdateData(){
+
+  var ProductDescription = document.getElementById("ProductDescription").value;
+  if (!ProductName.value){
+    alert("Invalid input");
+    return;
+  }
+
+  var output = "";
+  output = ProductDescription.replace(/(?:\r\n|\r|\n)/g, '\\n');
+
+  update(ref(database,'Products/' + ProductName.value), {
+    description : output,
+    price :Price.value
+  })
+  .then(()=>{
+    if(imageLoader.value == '' || imageLoader.value == null){
+        alert("Product update without image");
+        location.reload();
+        return;
+      }
+      firebase.initializeApp(firebaseConfig);
+      const ref = firebase.storage().ref();
+      const file = document.getElementById("imageLoader").files[0];
+      const name = "PRODUCT" + "_" + ProductName.value;
+      const metadata = {
+        contentType: file.type
+      };
+      const task = ref.child(name).put(file, metadata);task
+      .then(snapshot => snapshot.ref.getDownloadURL())
+      .then(url => {
+        document.getElementById('link').innerHTML= url;
+        //alert(url);
+        uploadFile();
+        
+      }).catch(console.error);
+
+    alert("Products Updated Successfully !");
+    //location.reload();
+  })
+  .catch((error)=>{
+    alert("unsucessful");
+    console.log(error);
+    location.reload();
+  })
+  
+}
+
+function DeleteData(){
+  remove(ref(database,'Products/' + ProductName.value))
+    .then(()=>{
+      alert("Products Deleted Successfully !");
+      location.reload();
+    })
+    .catch((error)=>{
+      alert("unsucessful");
+      console.log(error);
+      location.reload();
+    })
+    
+}
+
+    AddBtn.addEventListener('click',Interface);
+    RetBtn.addEventListener('click',Interface);
+    UpdBtn.addEventListener('click',Interface);
+    DelBtn.addEventListener('click',Interface);
+
+    // let ProductList = document.getElementById('ProductList');  
+
+    // function GetPackage(){
+	  // const dbref = ref(database);
+	  // get(child(dbref,'Products')).then((snapshot)=>{
+    //   snapshot.forEach(std => {
+		//     PackageListItem(std);
+	  //   });
+    //     });
+    // } 
+    
+    // function PackageListItem(std){
+	  // let key = std.key;
+	  // let value = std.val();
+	  // let description = document.createElement('li');
+    // let image = document.createElement('li');
+	  // let price = document.createElement('li');
+	  // let heading = document.createElement('h3');
+	  
+    // price.innerHTML = "Price : RM " + value.price;
+	  // heading.innerHTML = value.name;
+    // image.innerHTML = "<img style='width:100px;height:100px' src="+value.image+">";
+
+    // var input = value.description;
+    // var output = "";
+    // output = input.replaceAll('\\n', '<br>');
+    // description.innerHTML = "Description :<br> " + output;
+
+
+	  // let ul = document.createElement('ul');
+	  // ul.append(heading,image, description, price);
+	  // ProductList.append(ul);
+    // }
+
+    // window.addEventListener('load',GetPackage);
+    // window.addEventListener('load',ProductList);
+
+    let n = 1;
+
+function GetListUser(){
+  $('#ListofProduct').find("tr:not(:first)").remove();
+  const dbref = ref(database);
+  get(child(dbref,'Products')).then((snapshot)=>{
+    snapshot.forEach(std => {
+      ListUser(std);
+      n ++;
+      });
+  });
+}
+function ListUser(std){
+    let key = std.key;
+    let value = std.val();
+    let date = document.createElement('tr');
+
+    var input = value.description;
+    var output = "";
+    output = input.replaceAll('\\n', '<br>');
+
+    let image = "<img style='width:100px;height:100px' src="+value.image+">";
+    var money = value.price;
+    var index = money.indexOf("."); 
+    if(index >=0){
+        var id = money.slice(0, index); 
+        var text = money.slice(index + 1);  // Gets the text part
+        id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+        id = id.replaceAll(",",".");
+        money = id +","+ text;  
+    }
+    else{
+        money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+        money = money.replaceAll(",",".");
+        money = money+",00";
+    }
+    
+    
+
+    date.innerHTML = '<td>'+ n +"</td><td style='text-align:left'>"+ value.name +"</td><td style='text-align:left'>"+ output+"</td><td style='text-align:left'>"+ image+"</td><td style='text-align:left'>Rp. "+ money +"</td>";
+
+    ListofProduct.append(date);
+}
+window.addEventListener('load', GetListUser);
+    
+</script>

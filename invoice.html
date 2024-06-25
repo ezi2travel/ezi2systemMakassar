@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Invoice for Jemaah</title>
+    <link rel="icon" href="./LogoNBendera.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        label{
+            display:inline-block;
+            font-size: 16px;
+            font-family: Arial, Helvetica, sans-serif;
+            width: 110px; 
+        }
+        input{
+            margin-left: 5%;
+            width: 50%;
+            height: 30px;
+            font-size: 20px;
+            word-wrap: break-word; 
+        }
+        textarea{
+          margin-left: 5%;
+          width: 50%;
+          height: 80px;
+          font-size: 20px;
+          word-wrap: break-word;
+        }
+      
+        button{
+            height:50px;
+            width:90px;
+        }
+        
+        body {text-align: left; background-image: linear-gradient(aliceblue, rgb(142, 195, 242));background-attachment: fixed;}
+        
+        h3 {text-align:left}
+        .btn {
+          background-color: DodgerBlue;
+          border: none;
+          color: white;
+          padding: 12px 16px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+        .btn:hover {
+          background-color: RoyalBlue;
+        }
+        .review{
+          margin-left:60%;
+          width: device-width;   
+        }
+        .form{
+          height:100%;
+          width:100%;
+          position: fixed; 
+          z-index: 1; 
+          top: 0; 
+          left: 10%;  
+          overflow-x: hidden;
+          padding-top: 20px;
+          text-align : left;
+        }
+        a:link {color:blue;}    /* unvisited link is black*/
+        a:visited {color:purple;} /* visited link is black (reverse the color back to black)*/
+        a:hover {color:red;cursor:pointer;}   /* mouse over link (blue when mouse over)*/
+        a:active {color:pink}  /* selected link (blue in the split second which you loading the page.)*/
+        
+    </style>
+</head>
+
+<body>
+   
+<div class="review">
+  <h2 id="index" style="display: none;"></h2>
+</div>
+
+<div class="form" >
+  <h1 style="color:blue; font-size: 45px;">VIEW PAYMENT DETAILS HERE</h1>
+  <label>NAME : </label>
+  <input style="border-radius: 10px;" type="text" id="Name" name="Name" placeholder="Enter name" onkeyup="this.value = this.value.toUpperCase()"/><br><br>
+  <label>PHONE NO : </label>
+  <input style="border-radius: 10px;" type="number" id="no_telefon" name="no_telefon" placeholder="Enter Phone Number"/><br><br>
+  <label>ADDRESS : </label>
+  <textarea style="border-radius: 10px;" type="text" id="address" name="address" placeholder="Address" onkeyup="this.value = this.value.toUpperCase()" ></textarea><br><br>
+  <label>PAYMENT IN NAME : </label>
+  <textarea style="border-radius: 10px;" type="text" id="details" name="details" placeholder="Details" onkeyup="this.value = this.value.toUpperCase()" ></textarea><br><br>
+  <label>STATUS : </label>
+  <input style="border-radius: 10px;" type="text" id="status" name="status" disabled placeholder="Status" /><br><br>
+  <label>BALANCE : </label>
+  <input style="border-radius: 10px;" type="text" id="balance" name="balance" disabled placeholder="Balance"/><br><br>
+  <label>BY :</label>            
+  <input type="text" disabled id="userid1"/><br/><br/>
+  <br/><br/>
+  <div style="display: inline-flexbox">
+    <button title="Create New Invoice" id="AddBtn" style="background-color :green; color:white; font-weight: bold; border-radius: 10px;">CREATE</button>
+    <button title="Update Invoice" id="UpdBtn" style="background-color :blue; color:white; font-weight: bold; border-radius: 10px;">UPDATE</button>
+    <button title="View Summary Invoice" id="PayBtn" onclick=pay() style="background-color :rgb(29, 142, 95); color:black; font-weight: bold; border-radius: 10px;">SUMMARY</button>
+    <button title="Return to Main Invoice Page" id="btn" onclick="window.location.href='search_invoice.html'" style="background-color :yellow; font-weight: bold; border-radius: 10px;"><i class="fa fa-arrow-left" > </i> BACK</button>
+    <button title="Return to Homepage" onclick="window.location.href='homepage.html'" style="background-color :rgb(14, 163, 255); color:black; font-weight: bold; border-radius: 10px;"><i class="fa fa-home" > </i> HOME</button>
+    <button title="Delete Invoice" id="DelBtn" style="background-color :rgb(224, 23, 23); color:white; font-weight: bold; border-radius: 10px;"><i class="fa fa-trash" ></i> DELETE</button>
+    <br/><br/>
+  </div>
+  <p id="userid"></p>
+  <p id="date_payment" style="display: none;"></p> 
+  <div style="border: 1px solid white; width: 50%;" >
+    <ul id="myUL" style="font-size: 25px;"></ul>
+  </div>
+</div>
+ 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+  import {getDatabase, get, ref, set, child, onValue, remove, update} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+  import { getAuth, setPersistence, browserSessionPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRQjYZuJtRMwqRLLj6aG9Az5xB0Up_1-4",
+    authDomain: "databaseezimakassar.firebaseapp.com",
+    databaseURL: "https://databaseezimakassar-default-rtdb.firebaseio.com",
+    projectId: "databaseezimakassar",
+    storageBucket: "databaseezimakassar.appspot.com",
+    messagingSenderId: "52198587801",
+    appId: "1:52198587801:web:75d760ca1c2dabca51a708",
+    measurementId: "G-S280NXJS9F"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const analytics = getAnalytics(app);
+  const dbref = ref(db);
+
+  function checkuser(){
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        get(child(dbref, 'user/'+user.uid)).then((snapshot)=>{
+          if(snapshot.exists()){
+            document.getElementById("userid1").value = snapshot.val().userid;
+          }
+        })
+      } 
+      else {
+        alert("Please Sign In! ");
+        window.location.href= 'index.html';
+      }
+    });
+  }
+
+  window.addEventListener('load',checkuser);
+
+  const queryString = window.location.search;
+  var x = queryString.substring(7);
+  document.getElementById("index").innerHTML = x.split("%20").join(" ").toUpperCase();
+  let y = x.split("%20").join(" ").toUpperCase();
+  document.getElementById("Name").value = y;
+
+  let name = document.getElementById('Name');
+  let no_telefon = document.getElementById('no_telefon');
+  let status = document.getElementById('status');
+  let balance = document.getElementById('balance');
+  let address = document.getElementById('address');
+  let details = document.getElementById('details');
+
+  let AddBtn = document.getElementById('AddBtn');
+  let UpdBtn = document.getElementById('UpdBtn');
+  let PayBtn = document.getElementById('PayBtn');
+  let DelBtn = document.getElementById('DelBtn');
+
+  function pay(){
+    if(name.value == "" || name.value == null){
+      alert("Please fill name of Jemaah");
+    }
+    else if(no_telefon.value == "" || no_telefon.value == null){
+      alert("Please fill phone number of Jemaah");
+    }
+    else if(address.value == "" || address.value == null){
+      alert("Please fill address of Jemaah");
+    }
+    else{
+      const dbref = ref(db);
+      get(child(dbref, 'Payment/' + name.value)).then((snapshot)=>{
+        if(snapshot.exists()){
+          window.location.href='pay.html?index='+ y;
+        }
+        else{
+          alert("Jemaah does not exist!");
+          window.location.href='invoice.html';
+        }
+      })
+    }
+  }
+
+  function AddData(){
+    if(name.value =="" || name.value==null ||name.value =="" || no_telefon.value==null ){
+      alert("Please fill all the details!");
+      return;
+    }
+    else{
+      const dbref = ref(db);
+            
+      get(child(dbref, 'Payment/' + name.value)).then((snapshot)=>{
+        if(snapshot.exists()){
+          alert("Employee already exist, only can update!");
+          return;
+        }
+        else{
+          var output = "";
+          var details = document.getElementById("details").value;
+          output = details.replace(/(?:\r\n|\r|\n)/g, '\\n');
+
+          var output1 = "";
+          var address = document.getElementById("address").value;
+          output1 = address.replace(/(?:\r\n|\r|\n)/g, '\\n');
+
+          set(ref(db,'Payment/' + name.value), {
+            name : name.value,
+            no_telefon : no_telefon.value,
+            payment_status : "UNPAID",
+            alamat : output1,
+            details : output,
+            baki:0,
+            total:0,
+            payment_no : 0,
+            user : userid1.value
+                            
+          }).then(()=>{
+            alert("Jemaah Added Successfully !");
+            window.location.href= 'search_invoice.html';
+          }).catch((error)=>{
+            alert("Please add product");
+            console.log(error);
+          })
+
+          let d = document.getElementById("date_payment").innerHTML;
+          set(ref(db,'Payment/' + name.value + "/payment/"+"0"), {
+            amount:0,
+            reference:"",
+            date : d
+          })
+
+          set(ref(db,'CreditNote/' + name.value + "/CreditNote/"+"0"), {
+            amount:0,
+            reference:"",
+            date : d,
+          })
+          update(ref(db,'CreditNote/' + name.value ), {
+            creditnote_no:"0",
+            total_creditnote:"0"
+          })
+          get(child(dbref, 'number')).then((snapshot)=>{
+            let a = (Number(snapshot.val().invoice_no)+1);
+            update(ref(db,'Payment/' + name.value), {
+                invoice_no : a,                
+            })
+            update(ref(db,'number'), {
+                invoice_no : a,                
+            })
+          })
+          
+        }
+      })
+
+      
+    }
+    
+  }
+
+    function UpdData(){
+      if(name.value =="" || name.value==null || no_telefon.value =="" || no_telefon.value==null ){
+      alert("Please fill all the details!");
+      return;
+      }
+      else{
+        get(child(dbref, 'Payment/' + name.value)).then((snapshot)=>{
+          if(snapshot.exists()){
+            var output = "";
+            var output1 = "";
+            var details = document.getElementById("details").value;
+            var address = document.getElementById("address").value;
+            output = details.replace(/(?:\r\n|\r|\n)/g, '\\n');
+            output1 = address.replace(/(?:\r\n|\r|\n)/g, '\\n');
+            update(ref(db,'Payment/' + name.value), {
+            name : name.value,
+            no_telefon : no_telefon.value,
+            alamat : output1,
+            details : output,
+            
+            }).then(()=>{
+                alert("Data Updated Successfully !");
+            }).catch((error)=>{
+                alert(error);
+                console.log(error);
+            })
+            
+          }
+          else{
+            alert("Invoice Namee doesnt exist, please create first!");
+            return 0;
+          }
+        })
+      }
+    }
+  
+  let t_amount = 0;
+    
+  function GetPackage(){
+    const dbref = ref(db);
+    get(child(dbref,'Payment/'+ y +'/payment')).then((snapshot)=>{
+      snapshot.forEach(std => {
+        PackageListItem(std);
+        
+      });
+    });
+  }
+
+  function PackageListItem(std){
+    let key = std.key;
+    let value = std.val();
+    let date = document.createElement('li');
+
+    var money = (value.amount).toString();
+    var index = money.indexOf(".");
+
+      if(index >=0){
+        var id = money.slice(0, index); 
+        var text = money.slice(index + 1);  // Gets the text part
+        id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+        id = id.replaceAll(",",".");
+        money = id +","+ text;  
+      }
+      else{
+        money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+        money = money.replaceAll(",",".");
+        money = money+",00";
+      }
+
+    if (key == 0){
+      date.innerHTML = "<p>LIST OF PAYMENT</p>";
+    }
+    else{
+      date.innerHTML = '<a title="Click to View Payment Details" href="proof_payment.html?index='+y+'@'+key+'_'+value.amount+'&'+value.baki_after_payment+'$'+value.date+'" style="text-align:left">Payment : '+ key + ' Amount : Rp. ' + money +" On : " + value.date;
+    }
+    calculate(value.amount,key);
+    myUL.append(date); 
+  } 
+
+  function calculate(x,p){
+    const dbref = ref(db);
+    t_amount= Number(t_amount)  + Number(x);
+    //alert(x);
+    update(ref(db,'Payment/' + y), {
+      total_payment : t_amount,
+    })
+
+    let x_discount = 0;
+
+    get(child(dbref, 'Payment/' + y +"/discount")).then((snapshot)=>{
+      x_discount = snapshot.val().amount;
+      let y = snapshot.val().remarks;
+      discount.innerHTML = "DISCOUNT : (- RM " + x_discount+ ")";
+    })
+
+    let cn = 0;
+    
+    get(child(dbref, 'CreditNote/' + y)).then((snapshot)=>{
+        cn = snapshot.val().total_creditnote;
+    })
+
+    get(child(dbref, 'Payment/' + y)).then((snapshot)=>{
+
+      var input = snapshot.val().details;
+      var output = "";
+      output = input.replaceAll('\\n', '\n');
+
+      var input1 = snapshot.val().alamat;
+      var output1 = "";
+      output1 = input1.replaceAll('\\n', '\n');
+
+      name.value = snapshot.val().name;
+      no_telefon.value = snapshot.val().no_telefon;
+      address.value = output1;
+      details.value = output;
+      userid1.value = snapshot.val().user;
+      if(snapshot.exists()){
+      let N_baki = Number(snapshot.val().total)  - Number(snapshot.val().total_payment)+ Number(cn) - Number(x_discount);
+      N_baki = N_baki.toFixed(2);
+      //N_baki = N_baki.toFixed(2);
+        var money = N_baki.toString();
+        var index = money.indexOf("."); 
+            if(index >=0){
+             var id = money.slice(0, index); 
+            var text = money.slice(index + 1);  // Gets the text part
+            id = id.replace(/(.)(?=(.{3})+$)/g,"$1,");
+            id = id.replaceAll(",",".");
+            money = id +","+ text;  
+        }
+        else{
+            money = money.replace(/(.)(?=(.{3})+$)/g,"$1,");
+            money = money.replaceAll(",",".");
+            money = money+",00";
+        }
+      if(N_baki == 0 && snapshot.val().total != 0){
+        update(ref(db,'Payment/' + y), {
+          baki : N_baki,
+          payment_status : "FULLY PAID"
+        });
+        update(ref(db,'Payment/' + y +"/payment/"+p), {
+          baki_after_payment : N_baki,
+        });
+        status.value = "FULLY PAID";
+        balance.value = "Rp. " + money;
+      }
+      else if(snapshot.val().total_payment == 0){
+        update(ref(db,'Payment/' + y), {
+          baki : N_baki,
+          payment_status : "UNPAID"
+        });
+        update(ref(db,'Payment/' + y +"/payment/"+p), {
+          baki_after_payment : N_baki,
+        });
+        status.value = "UNPAID";
+        balance.value = "Rp. " + money;
+      }
+
+      else if(N_baki  < snapshot.val().total && N_baki > 0 ){
+        update(ref(db,'Payment/' + y), {
+          baki : N_baki,
+          payment_status : "PARTIALLY PAID"
+        });
+        update(ref(db,'Payment/' + y +"/payment/"+p), {
+          baki_after_payment : N_baki,
+        });
+        status.value = "PARTIALLY PAID";
+        balance.value = "Rp. " + money;
+      }
+      else if(N_baki  > snapshot.val().total && N_baki != 0 ){
+        update(ref(db,'Payment/' + y), {
+          baki : N_baki,
+          payment_status : "PARTIALLY PAID"
+        });
+        update(ref(db,'Payment/' + y +"/payment/"+p), {
+          baki_after_payment : N_baki,
+        });
+        status.value = "PARTIALLY PAID";
+        balance.value = "Rp. " + money;
+      }
+      else if(N_baki  <  0){
+        update(ref(db,'Payment/' + y), {
+          baki : N_baki,
+          payment_status : "OVER PAID"
+        });
+        update(ref(db,'Payment/' + y +"/payment/"+p), {
+          baki_after_payment : N_baki,
+        });
+        status.value = "OVER PAID";
+        balance.value = "Rp. " + money;
+      }
+      else if(snapshot.val().total == 0){
+        update(ref(db,'Payment/' + y), {
+          baki : N_baki,
+          payment_status : "UNPAID"
+        });
+        update(ref(db,'Payment/' + y +"/payment/"+p), {
+          baki_after_payment : N_baki,
+        });
+        status.value = "UNPAID";
+        balance.value = "Rp. " + money;
+      }
+      else {
+        update(ref(db,'Payment/' + y), {
+          baki : N_baki,
+          payment_status : "UNPAID"
+        });
+        update(ref(db,'Payment/' + y +"/payment/"+p), {
+          baki_after_payment : N_baki,
+        });
+        status.value = "UNPAID";
+        balance.value = "Rp. " + money;
+      }
+      } 
+    })
+    
+  }
+  function getDate(){
+    const result1 = new Date().toLocaleDateString('en-GB');
+    document.getElementById("date_payment").innerHTML = result1;
+  }
+
+  function DelInv(){
+    remove(ref(db,'Payment/' + name.value ))
+    .then(()=>{
+      remove(ref(db,'CreditNote/' + name.value ))
+      .then(()=>{
+        alert("Invoice for " + name.value +" deleted successfully !");          
+        window.location.href= 'search_invoice.html';
+      })
+      .catch((error)=>{
+        alert("unsucessful");
+      })          
+    })
+    .catch((error)=>{
+      alert("unsucessful");
+    })
+  }
+
+
+  window.addEventListener('load',GetPackage);
+  AddBtn.addEventListener('click',AddData);
+  UpdBtn.addEventListener('click',UpdData);
+  PayBtn.addEventListener('click',pay);
+  window.addEventListener('load',getDate);
+  DelBtn.addEventListener('click',DelInv);
+
+
+    </script>
+</body>
+</html>
